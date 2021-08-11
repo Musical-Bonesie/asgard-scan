@@ -1,0 +1,250 @@
+@use 'colors' as *;
+
+// BREAKPOINTS
+$tablet: 768px;
+$desktop: 1084px;
+$padding-increment: 0.5rem;
+
+//MEDIA QUERIES
+@mixin tablet {
+  @media (min-width: $tablet) {
+    @content;
+  }
+}
+@mixin desktop {
+  @media (min-width: $desktop) {
+    @content;
+  }
+}
+
+//BUTTON MIXINS
+
+//INPUT MIXIN
+@mixin input {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  //   border: 1px solid $secondary-light;
+  outline: none;
+}
+
+//TYPOGRAPHY MIXINS
+@mixin header {
+  font-size: 1.75rem;
+  line-height: 2.25rem;
+  @include tablet {
+    font-size: 2rem;
+    line-height: 2.5rem;
+  }
+}
+
+@mixin subhead {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  @include tablet {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+}
+@mixin label {
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+  font-weight: 600;
+  @include tablet {
+    font-size: 0.875rem;
+    line-height: 1.375rem;
+  }
+}
+@mixin table-header {
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  font-weight: 600;
+  color: $secondary-dark;
+  @include tablet {
+    font-size: 0.75rem;
+    line-height: 1.125rem;
+  }
+}
+@mixin body-large {
+  font-size: 0.9375rem;
+  line-height: 1.625rem;
+  @include tablet {
+    font-size: 1rem;
+    line-height: 1.75rem;
+  }
+}
+@mixin body-medium {
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+  @include tablet {
+    font-size: 0.875rem;
+    line-height: 1.375rem;
+  }
+}
+@mixin body-small {
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  @include tablet {
+    font-size: 0.75rem;
+    line-height: 1.125rem;
+  }
+}
+
+//LINK MIXIN
+@mixin link {
+  @include label;
+  color: $primary-blue;
+  text-decoration: none;
+}
+
+//MIXINS FOR PAGE HEADS FOR SITE-WIDE STYLE UNIFORMITY
+@mixin list-head {
+  display: flex;
+  flex-direction: column;
+  padding: $padding-increment * 4 $padding-increment * 3 $padding-increment * 3
+    $padding-increment * 3;
+
+  @include tablet {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: $padding-increment * 4;
+    height: 5.875rem;
+  }
+  &__header {
+    @include header;
+
+    @include tablet {
+      margin-right: auto;
+    }
+  }
+  &__search {
+    width: 100%;
+    position: relative;
+    margin: 1rem 0;
+
+    @include tablet {
+      width: 11.75rem;
+      margin: 0 $padding-increment * 2 0 0;
+    }
+
+    &--input {
+      @include input;
+      position: relative;
+      width: 100%;
+    }
+    &--icon {
+      position: absolute;
+      top: 0.5rem;
+      right: 1rem;
+    }
+  }
+  &__button {
+    @include button;
+  }
+}
+
+@mixin details-head {
+  display: flex;
+  flex-direction: row;
+  border-bottom: 1px solid $secondary-light;
+  padding: $padding-increment * 4 $padding-increment * 3 $padding-increment * 3
+    $padding-increment * 3;
+  align-items: center;
+  justify-content: space-between;
+  @include tablet {
+    height: 5.875rem;
+    padding: $padding-increment * 4;
+  }
+  & a:first-child {
+    height: 24px;
+    margin-right: 0.75rem;
+  }
+  &__header {
+    @include header;
+    margin-right: auto;
+    margin-left: $padding-increment;
+  }
+  &__button {
+    @include button;
+    &--circle {
+      width: 36px;
+      height: 36px;
+    }
+  }
+  &__icon {
+    &--light {
+      filter: brightness(0) invert(1);
+    }
+  }
+}
+
+//MIXINS FOR WAREHOUSE & ITEM LISTS FOR SITE-WIDE STYLE UNIFORMITY
+@mixin list {
+  &__row {
+    border-top: 1px solid $secondary-light;
+    padding: $padding-increment * 2 $padding-increment * 3 $padding-increment *
+      3 $padding-increment * 3;
+    display: flex;
+    flex-wrap: wrap;
+
+    &:hover {
+      background-color: rgba(46, 102, 230, 0.07);
+    }
+
+    @include tablet {
+      flex-wrap: nowrap;
+      padding: $padding-increment * 2 $padding-increment * 4;
+      align-items: center;
+
+      &:first-child {
+        border-top: none;
+      }
+    }
+  }
+  &__item {
+    width: 50%;
+    margin-bottom: 1rem;
+    @include tablet {
+      padding-right: $padding-increment * 2;
+      margin-bottom: 0;
+    }
+  }
+  &__data {
+    @include body-medium;
+  }
+  &__label {
+    @include table-header;
+
+    @include tablet {
+      display: none;
+    }
+  }
+  &__link {
+    @include link;
+    display: flex;
+    align-items: center;
+    p {
+      @include link;
+    }
+    &:hover {
+      .warehouse-list__chevron,
+      .item-list__chevron {
+        margin-left: 8px;
+      }
+    }
+  }
+  &__actions {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    @include tablet {
+      width: 16.66%;
+      justify-content: flex-end;
+      & > * {
+        margin-left: $padding-increment * 3;
+      }
+    }
+  }
+}
