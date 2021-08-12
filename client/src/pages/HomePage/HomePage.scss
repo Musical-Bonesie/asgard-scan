@@ -1,0 +1,58 @@
+@use "../../partials/colors" as *;
+@use "../../partials/mixins" as *;
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding: $padding-increment * 2;
+  background-color: $primary-dark;
+
+  &__heading {
+    color: white;
+    font-size: 1.5rem;
+    padding-bottom: $padding-increment * 2;
+  }
+  &__likelyhood {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    border: 1px solid white;
+    border-radius: 20px;
+    padding-bottom: $padding-increment;
+  }
+  &__ingredients {
+    display: inline-block;
+    color: white;
+  }
+  &__alert-icon {
+    padding: 0;
+  }
+}
+
+.main {
+  &__heading {
+    color: $parimary-light;
+    font-size: 1.5rem;
+  }
+  &__copy {
+    font-size: 1rem;
+    color: $parimary-light;
+  }
+
+  &__add-product {
+    width: 1rem;
+  }
+  &__search {
+    background-color: white;
+  }
+  &__search--input {
+    background-image: url("../../assets//logo/search.svg");
+    background-repeat: no-repeat;
+    padding: $padding-increment;
+    width: 100%;
+    border-radius: 20px;
+    text-indent: 20px;
+    border: 1px solid $primary-dark;
+  }
+}
