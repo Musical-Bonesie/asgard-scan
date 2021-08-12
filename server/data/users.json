@@ -1,0 +1,39 @@
+[
+    {
+    "id":"123",
+    "first_name":"Mia",
+    "last_name":"Appleseed",
+    "email":"mia@gmail.com",
+    "password":"password",
+    "yes_products":[
+            {
+                "id":"525151831",
+                "brandName":"EAST29TH",
+                "productName": "Vital Serum",
+                "ingredients":"Aqua, Caprylyl/Capryl Glucoside, Polyglyceryl - 10 Laurate, Glycerin, Polyglyceryl-10 Oleate, Niacinamide, Citrus Medica Limonum (Lemon) Peel Extract, Euphrasia Officinalis Extract, Vaccinium Myrtillus (Bilberry) Extract, Saccharum Officinarum (Sugar Cane) Extract, Citrus Aurantium Dulcis (Orange) Fruit Extract, Citrus Limon (Lemon) Fruit Extract, Acer Saccharum (Sugar Maple) Extract, Phopholipids, Retinyl Palmitate, Tocopherol, Ascorbyl Palmitate, Beta Carotene, Hyaluronic Acid, Citrus Grandis (Grapefruit) Seed Extract, Camellia Sinensis (Green Tea) Leaf Extract, Aloe Barbadensis (Aloe Vera) Leaf Extract, Cucumis Sativus (Cucumber) Fruit Extract, Calendula Officinalis Flower Extract, Sodium Phytate, Benzyl Alcohol, Salicylic Acid, Sorbic Acid, Dehydroxanthan Gum ",
+                "price":"88.00",
+                "category":"serum",
+                "status":"no sensitivity",
+                "image":"https://i.imgur.com/l2Xfgpl.jpg"    
+                
+            }
+        
+    ],
+    "no_products":[
+        {
+            "id":"93994516",
+            "brandName":"HENNE ORGANICS",
+            "productName": "LIP MASK",
+            "ingredients":"ORGANIC ROSA CANINA (ROSEHIP) SEED OIL, ORGANIC PERSEA AMERICANA (AVOCADO) OIL, ORGANIC CERA ALBA (BEESWAX), ORGANIC SIMMONDSIA CHINENSIS (JOJOBA) SEED OIL, ORGANIC PUNICA GRANATUM (POMEGRANATE) SEED OIL, ORGANIC HIPPOPHAE RHAMNOIDES (SEA BUCKTHORN) SEED OIL, ORGANIC VACCINIUM MACROCARPON (CRANBERRY) SEED OIL, ORGANIC OENOTHERA BIENNIS (EVENING PRIMROSE) OIL, ORGANIC NIGELLA SATIVA (BLACK CUMIN) SEED OIL, ORGANIC CITRUS LIMON (LEMON) PEEL OIL, ORGANIC VANILLA FLAVOR, TOCOPHEROL (VITAMIN E), ORGANIC CITRUS SINENSIS (SWEET ORANGE) PEEL OIL, ORGANIC MENTHA PIPERITA (PEPPERMINT) OIL",
+            "price":"49.00",
+            "category":"lipcare",
+            "status":"sensitivity",
+            "image":""    
+            
+        }
+    
+]
+
+    }
+   
+]
