@@ -20,20 +20,17 @@ export default class HomePage extends Component {
         return getUser();
       })
       .then((res) => {
-        // console.log(
-        //   res.data[0].no_products[0].ingredients,
-        //   res.data[0].yes_products[0].ingredients
-        // );
-        const yes = res.data[0].no_products[0].ingredients.toLowerCase();
+        const yes = res.data[0].yes_products[0].ingredients.toLowerCase();
         const no = res.data[0].no_products[0].ingredients.toLowerCase();
 
         const yesArr = yes.split(",");
         const noArr = no.split(",");
         console.log(yesArr, "yes array");
-
-        const difference = noArr.filter((x) => !yesArr.includes(x));
+        console.log(noArr);
+        const difference = noArr.filter(
+          (ingredient) => !yesArr.includes(ingredient)
+        );
         console.log(difference);
-        // const allIngredients = yes.concat(no).toLowerCase();
       })
       .catch((error) => {
         console.log("error in componentDIdMount", error);
@@ -41,7 +38,7 @@ export default class HomePage extends Component {
   }
 
   ingredientMatch() {
-    //compare two arrays the yes products and no prodcuts and return the similar ingrdients
+    //compare two arrays the yes products and no products and return the similar ingrdients
     // turn all ingreidnets into toLowerCase()
   }
 
