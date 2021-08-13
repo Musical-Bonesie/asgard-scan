@@ -3,4 +3,8 @@
 @use "../../partials/mixins" as *;
 
 .collasible {
+  display: none;
+  &--expand {
+    display: contents;
+  }
 }

@@ -8,7 +8,14 @@ import { v4 as uuidv4 } from "uuid";
 export default function ProductList({ products }) {
   //created a reusable component to display an itemList (since it's used on multiple pages) and maintain styling consistency.
   // ItemList uses .map() to go through an item array recieved from props.
-  //TODO look into toggle for see more
+  //TODO create onClick functio that changes a veriable class name. Put veriable in className={} :-)
+  let className = "collasible";
+  function handleClick(event) {
+    event.preventDefault();
+    className = "collasible--expand";
+    console.log("link was clicked");
+  }
+
   return (
     <div className="product-list">
       <h3 className="product-list__heanding">YOUR PRODUCTS</h3>
@@ -23,13 +30,8 @@ export default function ProductList({ products }) {
         alt="see more products link"
         className="collasible__see-more"
       />
-      <div
-      // onClick={(e) =>
-      //   this.e
-      //     ? (className = "collasible")
-      //     : (className = "collasible--expand")
-      // }
-      >
+      {/* tried this a didferent onClick way?! */}
+      <div className={className}>
         {products.map((item) => (
           <div className="product-list__content" key={uuidv4()}>
             <div className="product-list__item">

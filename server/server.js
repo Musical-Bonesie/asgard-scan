@@ -5,7 +5,7 @@ const productsRoutes = require("./routes/products");
 const usersRoutes = require("./routes/users");
 
 app.use(cors());
-
+//helps avoid issues with reading the req body.
 app.use(express.json());
 
 //configuration
