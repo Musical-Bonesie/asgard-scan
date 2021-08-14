@@ -10,11 +10,21 @@
                 "id":"525151831",
                 "brandName":"EAST29TH",
                 "productName": "Vital Serum",
-                "ingredients":"Aqua, Caprylyl/Capryl Glucoside, Polyglyceryl - 10 Laurate, Glycerin, Polyglyceryl-10 Oleate, Niacinamide, Citrus Medica Limonum (Lemon) Peel Extract, Euphrasia Officinalis Extract, Vaccinium Myrtillus (Bilberry) Extract, Saccharum Officinarum (Sugar Cane) Extract, Citrus Aurantium Dulcis (Orange) Fruit Extract, Citrus Limon (Lemon) Fruit Extract, Acer Saccharum (Sugar Maple) Extract, Phopholipids, Retinyl Palmitate, Tocopherol, Ascorbyl Palmitate, Beta Carotene, Hyaluronic Acid, Citrus Grandis (Grapefruit) Seed Extract, Camellia Sinensis (Green Tea) Leaf Extract, Aloe Barbadensis (Aloe Vera) Leaf Extract, Cucumis Sativus (Cucumber) Fruit Extract, Calendula Officinalis Flower Extract, Sodium Phytate, Benzyl Alcohol, Salicylic Acid, Sorbic Acid, Dehydroxanthan Gum ",
+                "ingredients":"Caprylyl/Capryl Glucoside, Polyglyceryl - 10 Laurate, Glycerin, Polyglyceryl-10 Oleate, Niacinamide, Citrus Medica Limonum (Lemon) Peel Extract, Euphrasia Officinalis Extract, Vaccinium Myrtillus (Bilberry) Extract, Saccharum Officinarum (Sugar Cane) Extract, Citrus Aurantium Dulcis (Orange) Fruit Extract, Citrus Limon (Lemon) Fruit Extract, Acer Saccharum (Sugar Maple) Extract, Phopholipids, Retinyl Palmitate, Tocopherol, Ascorbyl Palmitate, Beta Carotene, Hyaluronic Acid, Citrus Grandis (Grapefruit) Seed Extract, Camellia Sinensis (Green Tea) Leaf Extract, Aloe Barbadensis (Aloe Vera) Leaf Extract, Cucumis Sativus (Cucumber) Fruit Extract, Calendula Officinalis Flower Extract, Sodium Phytate, Benzyl Alcohol, Salicylic Acid, Sorbic Acid, Dehydroxanthan Gum ",
                 "price":"88.00",
                 "category":"serum",
                 "status":"no sensitivity",
                 "image":"https://i.imgur.com/l2Xfgpl.jpg"    
+                
+            },
+            {
+                "id":"837146426",
+                "brandName":"CYBERDERM",
+                "productName": "Exfoliant Reveal",
+                "ingredients":"Aqua, Glycolic Acid, PVP, Arginine, Caprylhydroxamic Acid, Caprylyl Glycol, Glycerin",
+                "price":"38.00",
+                "category":"treatment",
+                "image":""    
                 
             }
         
@@ -24,11 +34,20 @@
             "id":"93994516",
             "brandName":"HENNE ORGANICS",
             "productName": "LIP MASK",
-            "ingredients":"Aqua, ORGANIC ROSA CANINA (ROSEHIP) SEED OIL, ORGANIC PERSEA AMERICANA (AVOCADO) OIL, ORGANIC CERA ALBA (BEESWAX), ORGANIC SIMMONDSIA CHINENSIS (JOJOBA) SEED OIL, ORGANIC PUNICA GRANATUM (POMEGRANATE) SEED OIL, ORGANIC HIPPOPHAE RHAMNOIDES (SEA BUCKTHORN) SEED OIL, ORGANIC VACCINIUM MACROCARPON (CRANBERRY) SEED OIL, ORGANIC OENOTHERA BIENNIS (EVENING PRIMROSE) OIL, ORGANIC NIGELLA SATIVA (BLACK CUMIN) SEED OIL, ORGANIC CITRUS LIMON (LEMON) PEEL OIL, ORGANIC VANILLA FLAVOR, TOCOPHEROL (VITAMIN E), ORGANIC CITRUS SINENSIS (SWEET ORANGE) PEEL OIL, ORGANIC MENTHA PIPERITA (PEPPERMINT) OIL",
+            "ingredients":"ORGANIC ROSA CANINA (ROSEHIP) SEED OIL, ORGANIC PERSEA AMERICANA (AVOCADO) OIL, ORGANIC CERA ALBA (BEESWAX), ORGANIC SIMMONDSIA CHINENSIS (JOJOBA) SEED OIL, ORGANIC PUNICA GRANATUM (POMEGRANATE) SEED OIL, ORGANIC HIPPOPHAE RHAMNOIDES (SEA BUCKTHORN) SEED OIL, ORGANIC VACCINIUM MACROCARPON (CRANBERRY) SEED OIL, ORGANIC OENOTHERA BIENNIS (EVENING PRIMROSE) OIL, ORGANIC NIGELLA SATIVA (BLACK CUMIN) SEED OIL, ORGANIC CITRUS LIMON (LEMON) PEEL OIL, ORGANIC VANILLA FLAVOR, TOCOPHEROL (VITAMIN E), ORGANIC CITRUS SINENSIS (SWEET ORANGE) PEEL OIL, ORGANIC MENTHA PIPERITA (PEPPERMINT) OIL",
             "price":"49.00",
             "category":"lipcare",
             "status":"sensitivity",
             "image":""    
+            
+        },{
+            "id":"381603883",
+            "brandName":"ETYMOLOGIE",
+            "productName": "BAKUCHIOL SERUM",
+            "ingredients":"Peanut Butter, Nigella Sativa (Black Cumin) Seed Oil, Cannabis Sativa (Hemp) Seed Oil, Octyldodecanol, Caprylic/Capric Triglyceride, Vitis Vinifera (Grape) Seed Oil, Squalane, Simmondsia Chinensis (Jojoba) Seed Oil, Vaccinium Macrocarpon (Cranberry) Seed Oil, Bakuchiol, Salicylic Acid, Rosa Canina Fruit Oil, Calophyllum Inophyllum (Tamanu) Oil, Carthamus Tinctorius (Safflower) Seed Oil, Cucumis Sativus (Cucumber) Seed Oil, Daucus Carota Satia (Carrot) Seed Oil, Tocopherol, Achillea millefolium (Yarrow) Leaf Extract, Equisetum arvense) Horsetail Extract, Salvia officinalis (Sage) Leaf Extract, Lavandula angustifolia (Lavender) Flower Extract, Utica dioica (Nettle) Leaf Extract, Helianthus Annuus Seed Oil, Rosmarinus Officinalis Leaf Extract",
+            "price":"83.00",
+            "category":"serum",
+            "image":"" 
             
         }
     

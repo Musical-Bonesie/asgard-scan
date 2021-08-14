@@ -20,17 +20,23 @@ export default class HomePage extends Component {
         return getUser();
       })
       .then((res) => {
-        const yes = res.data[0].yes_products[0].ingredients.toLowerCase();
-        const no = res.data[0].no_products[0].ingredients.toLowerCase();
-
-        const yesArr = yes.split(",");
-        const noArr = no.split(",");
-        console.log(yesArr, "yes array");
-        console.log(noArr);
-        const difference = noArr.filter(
-          (ingredient) => !yesArr.includes(ingredient)
+        let yesIngredients = res.data[0].yes_products.map((item) =>
+          item.ingredients.toLowerCase()
         );
-        console.log(difference);
+        const notSensitiveToArray = yesIngredients.toString().split(",");
+
+        let noIngredients = res.data[0].no_products.map((item) =>
+          item.ingredients.toLowerCase()
+        );
+        const sensitiveToArray = noIngredients.toString().split(",");
+
+        const ingredientSensitivity = sensitiveToArray.filter(
+          (ingredient) => !notSensitiveToArray.includes(ingredient)
+        );
+        console.log(
+          "I'm sensitive to these ingredients:",
+          ingredientSensitivity
+        );
       })
       .catch((error) => {
         console.log("error in componentDIdMount", error);
