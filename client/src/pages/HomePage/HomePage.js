@@ -2,14 +2,18 @@ import React, { Component } from "react";
 import likelySensitive from "../../assets/logo/high-likelyhood-text.svg";
 import alertIcon from "../../assets/logo/alert-icon.svg";
 import add from "../../assets/logo/add-product.svg";
+import ProductsCarousel from "../../components/ProductsCarousel/ProductsCarousel";
 import ProductList from "../../components/ProductList/ProductList";
+import IngredientList from "../../components/IngredientList/IngredientList";
 import "./HomePage.scss";
 import { getProducts, getUser } from "../../utils/dataUtils";
 
 export default class HomePage extends Component {
   state = {
     userProducts: null,
-    user: null,
+    currentUser: null,
+    sensitiveToIngredients: null,
+    item: null,
   };
   componentDidMount() {
     getProducts()
@@ -33,71 +37,32 @@ export default class HomePage extends Component {
         const ingredientSensitivity = sensitiveToArray.filter(
           (ingredient) => !notSensitiveToArray.includes(ingredient)
         );
-        console.log(
-          "I'm sensitive to these ingredients:",
-          ingredientSensitivity
-        );
+
+        this.setState({ sensitiveToIngredients: ingredientSensitivity });
       })
       .catch((error) => {
         console.log("error in componentDIdMount", error);
       });
   }
 
-  ingredientMatch() {
-    //compare two arrays the yes products and no products and return the similar ingrdients
-    // turn all ingreidnets into toLowerCase()
-  }
-
+  // TODO move getUser and ingredients into this function sensitiveTo() {}
+  handleClick = (item) => {
+    this.setState({ item: item });
+    console.log("carousel button was clicked:", item);
+  };
   render() {
     return (
-      this.state.userProducts && (
+      this.state.userProducts &&
+      this.state.sensitiveToIngredients && (
         <>
-          <header className="header">
-            <h1 className="header__heading">
-              WE THINK YOU MAY HAVE SENSITIVITIES TO:
-            </h1>
-            <img src={likelySensitive} alt="high likelyhood" />
-            <section className="header__likelyhood">
-              <p className="header__ingredients">
-                .map trough ingredients that have been filtered
-              </p>
-              <img
-                className="header__alert-icon"
-                alt="sensitive to icon"
-                src={alertIcon}
-              />
-            </section>
-            <img src={likelySensitive} alt="high likelyhood" />
-            <section className="header__likelyhood">
-              <p className="header__ingredients">
-                MODERATE LIKELYHOOD INGREDIENTS
-              </p>
-              <img
-                className="header__alert-icon"
-                alt="sensitive to icon"
-                src={alertIcon}
-              />
-            </section>
-          </header>
-          <main className="main">
-            {/* // add these products to the "Yes" Products Array */}
-            <h2 className="main__heading">AM I SENSITIVE?</h2>
-            <p className="main__copy">
-              Add at lest one product that works for you{" "}
-              <img className="__add-product" alt="add prodcut icon" src={add} />{" "}
-              <br />
-            </p>
-            {/* Add these products to the "No"/Cause Reaction Array */}
-            <p className="main__copy">
-              {" "}
-              Add products that you've had a negative reaction to
-              <img className="__add-product" alt="add product icon" src={add} />
-            </p>
+          <IngredientList
+            sensitiveToIngredients={this.state.sensitiveToIngredients}
+          />
 
+          <main className="main">
             <h2 className="main__heading">
               Already know what you're sensitive to?
             </h2>
-
             <div className="main__search">
               <label className="main__copy">
                 {" "}
@@ -110,7 +75,25 @@ export default class HomePage extends Component {
                   onChange={this.handleOnChange}
                 />
               </label>
+              <h2 className="main__heading">AM I SENSITIVE?</h2>
+              {/* // add these products to the "Yes" Products Array */}
+
+              <p className="main__copy">
+                Add at lest one product that works for you{" "}
+              </p>
+              <ProductsCarousel handleClick={this.handleClick} />
+              {/* Add these products to the "No"/Cause Reaction Array */}
+              <p className="main__copy">
+                {" "}
+                Add products that you've had a negative reaction to
+              </p>
+              <ProductsCarousel />
             </div>
+            <h2 className="carousel__heading">DIVCOVER PRODUCTS</h2>
+            <p className="carousel__copy">
+              We've curated some products that don't contain any of the
+              ingredients you are sensitive to!
+            </p>
             <ProductList products={this.state.userProducts} />
             <button type="button" onClick={this.logout}>
               Log out
