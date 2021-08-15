@@ -1,35 +1,6 @@
 @use "../../partials/colors" as *;
 @use "../../partials/mixins" as *;
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  padding: $padding-increment * 2;
-  background-color: $primary-dark;
-
-  &__heading {
-    color: white;
-    font-size: 1.5rem;
-    padding-bottom: $padding-increment * 2;
-  }
-  &__likelyhood {
-    display: flex;
-    align-items: center;
-    justify-content: space-evenly;
-    border: 1px solid white;
-    border-radius: 20px;
-    padding-bottom: $padding-increment;
-  }
-  &__ingredients {
-    display: inline-block;
-    color: white;
-  }
-  &__alert-icon {
-    padding: 0;
-  }
-}
-
 .main {
   &__heading {
     color: $parimary-light;
