@@ -14,7 +14,7 @@
                 "price":"88.00",
                 "category":"serum",
                 "status":"no sensitivity",
-                "image":"https://i.imgur.com/l2Xfgpl.jpg"    
+                "image":"natreceutique_be_light.svg"   
                 
             },
             {
@@ -24,7 +24,7 @@
                 "ingredients":"Aqua, Glycolic Acid, PVP, Arginine, Caprylhydroxamic Acid, Caprylyl Glycol, Glycerin",
                 "price":"38.00",
                 "category":"treatment",
-                "image":""    
+                "image":"argan_oil.svg"  
                 
             }
         

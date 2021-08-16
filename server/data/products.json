@@ -5,7 +5,7 @@
     "ingredients":"Aqua, Caprylyl/Capryl Glucoside, Polyglyceryl - 10 Laurate, Glycerin, Polyglyceryl-10 Oleate, Niacinamide, Citrus Medica Limonum (Lemon) Peel Extract, Euphrasia Officinalis Extract, Vaccinium Myrtillus (Bilberry) Extract, Saccharum Officinarum (Sugar Cane) Extract, Citrus Aurantium Dulcis (Orange) Fruit Extract, Citrus Limon (Lemon) Fruit Extract, Acer Saccharum (Sugar Maple) Extract, Phopholipids, Retinyl Palmitate, Tocopherol, Ascorbyl Palmitate, Beta Carotene, Hyaluronic Acid, Citrus Grandis (Grapefruit) Seed Extract, Camellia Sinensis (Green Tea) Leaf Extract, Aloe Barbadensis (Aloe Vera) Leaf Extract, Cucumis Sativus (Cucumber) Fruit Extract, Calendula Officinalis Flower Extract, Sodium Phytate, Benzyl Alcohol, Salicylic Acid, Sorbic Acid, Dehydroxanthan Gum ",
     "price":"88.00",
     "category":"serum",
-    "image":"https://i.imgur.com/l2Xfgpl.jpg"    
+    "image":"argan_oil.svg"    
     
 
 
@@ -17,7 +17,7 @@
     "ingredients":"Aqua, Glycolic Acid, PVP, Arginine, Caprylhydroxamic Acid, Caprylyl Glycol, Glycerin",
     "price":"38.00",
     "category":"treatment",
-    "image":""    
+    "image":"natreceutique_be_light.svg"    
     
 },
 {
@@ -99,14 +99,14 @@
     "ingredients":"20% Zinc Oxide, Caprylic/Capric Triglyceride, Glyceryl Isostearate, Polyhydroxystearic Acid, Polylactic Acid, Coconut Alkanes, Coco-Caprylate/Caprate, Carthamus Tinctorius Oleosomes, Aqua, Cellulose, Sorbitan Oleate, Bis Cyano Butylacetate Anthracenediylidene (Micah).",
     "price":"50.00",
     "category":"Sunscreen",
-    "image":"" 
+    "image":"ava_isa_rose.svg" 
     
 },
 {
-    "id":"",
-    "brandName":"",
-    "productName": "",
-    "ingredients":"",
+    "id":"6000",
+    "brandName":"Brand Test",
+    "productName": "Fruit Salad",
+    "ingredients":"Bananas, Apples, ",
     "price":"",
     "category":"",
     "image":"" 

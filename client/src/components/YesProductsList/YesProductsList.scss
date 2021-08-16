@@ -1,0 +1,59 @@
+@import "~bootstrap/scss/bootstrap";
+
+// .carousel {
+//   background-image: url(../../assets//logo/product-background.svg);
+//   background-repeat: no-repeat;
+//   background-size: contain;
+//   width: 50vw;
+//   margin: 0 auto;
+
+//   &__heading {
+//     font-size: 1rem;
+//     color: lightgray;
+//     padding: 1rem 1rem 0 1rem;
+//   }
+//   &__copy {
+//     color: grey;
+//     padding: 0 1rem;
+//   }
+//   &__button-container {
+//     display: flex;
+//     justify-content: flex-end;
+//     width: 100%;
+//   }
+//   &__button {
+//     margin-left: 5rem;
+//     width: 3rem;
+//   }
+// }
+
+.card {
+  display: flex;
+  flex-wrap: wrap;
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    width: 30vw;
+    background-image: url(../../assets//logo/product-background.svg);
+    background-repeat: no-repeat;
+    background-size: contain;
+    width: 50vw;
+    margin: 0 auto;
+    position: relative;
+  }
+  &__image {
+    // position: absolute;
+  }
+  &__button {
+    width: 3rem;
+    position: absolute;
+    top: 5rem;
+  }
+  &__body {
+    flex-basis: 100%;
+  }
+  &__heading {
+    font-size: 1rem;
+  }
+}
