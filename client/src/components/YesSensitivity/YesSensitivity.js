@@ -1,11 +1,11 @@
 import { v4 as uuidv4 } from "uuid";
 
 import add from "../../assets/logo/add-product.svg";
-import "./YesProductsList.scss";
+import "./yesSensitivity.scss";
 
-export default function YesProductsList({ handleClick, userYesProducts }) {
+export default function YesSensitivity({ handleClick, yesSensitivity }) {
   // let product_id = userYesProducts;
-  console.log(userYesProducts);
+  console.log(yesSensitivity);
 
   //TODO now the the button works and goes to the handleClick function on hommePage.
   // Map through no_products map through no_products and if it was clicked --> gets added to the no_product array list of that user.
@@ -13,7 +13,7 @@ export default function YesProductsList({ handleClick, userYesProducts }) {
   //
   return (
     <div className="card">
-      {userYesProducts.map((product) => {
+      {yesSensitivity.map((product) => {
         let product_id = product.id;
         return (
           <div className="card__content" key={uuidv4()}>
