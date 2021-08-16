@@ -2,6 +2,7 @@ import "./App.scss";
 import { BrowserRouter, Route, Switch } from "react-router-dom";
 import Header from "./components/Header/index";
 import HomePage from "./pages/HomePage/index";
+import Login from "./pages/Login/index";
 import YesProductsList from "./components/YesProductsList/YesProductsList";
 
 function App() {
@@ -13,7 +14,7 @@ function App() {
           <Route path="/" exact component={HomePage} />
           <Route path="/products" exact component={HomePage} />
           <Route path="/yesproducts" exact component={YesProductsList} />
-          {/* <Route path ="/login" exact component={Login} /> */}
+          <Route path="/login" exact component={Login} />
           {/* <ProtectedRoute to="/" exact component={HomePage} /> */}
         </Switch>
       </BrowserRouter>

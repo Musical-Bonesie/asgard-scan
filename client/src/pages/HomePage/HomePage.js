@@ -2,7 +2,8 @@ import React, { Component } from "react";
 // import likelySensitive from "../../assets/logo/high-likelyhood-text.svg";
 // import alertIcon from "../../assets/logo/alert-icon.svg";
 // import add from "../../assets/logo/add-product.svg";
-import YesProductsList from "../../components/YesProductsList/YesProductsList";
+import NoSensitivity from "../../components/NoSensitivity/index";
+import YesSensitivity from "../../components/YesSensitivity/YesSensitivity";
 import ProductList from "../../components/ProductList/ProductList";
 import IngredientList from "../../components/IngredientList/IngredientList";
 import "./HomePage.scss";
@@ -12,8 +13,8 @@ export default class HomePage extends Component {
   state = {
     products: null,
     displayProducts: null,
-    userNoProducts: null,
-    userYesProducts: null,
+    noSensitivity: null,
+    yesSensitivity: null,
     currentUser: null,
     sensitiveToIngredients: null,
     item: null,
@@ -29,13 +30,13 @@ export default class HomePage extends Component {
         return getUser();
       })
       .then((res) => {
-        this.setState({ userYesProducts: res.data[0].yes_products });
-        let yesIngredients = res.data[0].yes_products.map((item) =>
+        this.setState({ noSensitivity: res.data[0].no_sensitivity });
+        let yesIngredients = res.data[0].no_sensitivity.map((item) =>
           item.ingredients.toLowerCase()
         );
         const notSensitiveToArray = yesIngredients.toString().split(",");
 
-        let noIngredients = res.data[0].no_products.map((item) =>
+        let noIngredients = res.data[0].yes_sensitivity.map((item) =>
           item.ingredients.toLowerCase()
         );
         const sensitiveToArray = noIngredients.toString().split(",");
@@ -46,7 +47,8 @@ export default class HomePage extends Component {
 
         this.setState({
           sensitiveToIngredients: ingredientSensitivity,
-          userNoProducts: res.data[0].no_products,
+          noSensitivity: res.data[0].no_sensitivity,
+          yesSensitivity: res.data[0].yes_sensitivity,
         });
       })
       .catch((error) => {
@@ -76,8 +78,8 @@ export default class HomePage extends Component {
     return (
       this.state.products &&
       this.state.sensitiveToIngredients &&
-      this.state.userNoProducts &&
-      this.state.userYesProducts && (
+      this.state.noSensitivity &&
+      this.state.yesSensitivity && (
         <>
           <IngredientList
             sensitiveToIngredients={this.state.sensitiveToIngredients}
@@ -106,16 +108,17 @@ export default class HomePage extends Component {
                 Add at lest one product that works for you{" "}
               </p>
               {/* TODO Remember to change the userYesProducts props to just products */}
-              <YesProductsList
-                handleClick={this.handleClick}
-                userYesProducts={this.state.userYesProducts}
-              />
+              <NoSensitivity noSensitivity={this.state.noSensitivity} />
+
               {/* Add these products to the "No"/Cause Reaction Array */}
               <p className="main__copy">
                 {" "}
                 Add products that you've had a negative reaction to
               </p>
-              {/* <ProductsCarousel /> */}
+              <YesSensitivity
+                handleClick={this.handleClick}
+                yesSensitivity={this.state.yesSensitivity}
+              />
             </div>
             <h2 className="carousel__heading">DIVCOVER PRODUCTS</h2>
             <p className="carousel__copy">
