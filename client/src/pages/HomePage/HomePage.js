@@ -6,6 +6,7 @@ import NoSensitivity from "../../components/NoSensitivity/index";
 import YesSensitivity from "../../components/YesSensitivity/YesSensitivity";
 import ProductList from "../../components/ProductList/ProductList";
 import IngredientList from "../../components/IngredientList/IngredientList";
+import Footer from "../../components/Footer/index";
 import "./HomePage.scss";
 import { getProducts, getUser } from "../../utils/dataUtils";
 
@@ -44,6 +45,7 @@ export default class HomePage extends Component {
         const ingredientSensitivity = sensitiveToArray.filter(
           (ingredient) => !notSensitiveToArray.includes(ingredient)
         );
+        console.log(ingredientSensitivity);
 
         this.setState({
           sensitiveToIngredients: ingredientSensitivity,
@@ -57,9 +59,14 @@ export default class HomePage extends Component {
   }
 
   // TODO move getUser and ingredients into this function sensitiveTo() {}
-  handleClick = (item) => {
-    this.setState({ item: item });
-    console.log("carousel button was clicked:", item);
+  addProductSensitivity = (product) => {
+    this.setState({ item: product });
+    console.log("I'm sensitive to this product:", product);
+  };
+
+  addProductNoSensitivity = (product) => {
+    this.setState({ item: product });
+    console.log("I'm not sensitive to this product:", product);
   };
 
   //TODO fix this: right now it pulls up products WITH the ingredients searched
@@ -67,13 +74,29 @@ export default class HomePage extends Component {
     event.preventDefault();
     console.log(event.target.value);
     const searchIngredients = event.target.value.toLowerCase();
+    console.log(searchIngredients);
+    const searchArr = searchIngredients.split(",");
+    console.log(searchIngredients);
+    console.log(searchArr); // TODO delete this probably don't need an array?
+
     this.setState({
-      displayProducts: this.state.products.filter((product) => {
-        return product.ingredients.toLowerCase().includes(searchIngredients);
-      }),
+      displayProducts: this.state.products.filter((product) =>
+        // product.ingredients.toLowerCase() !== searchIngredients
+        {
+          return product.ingredients.toLowerCase().includes(searchIngredients);
+        }
+      ),
     });
     console.log(this.state.displayProducts);
   };
+
+  logout = () => {
+    //created sessionStorage to loggin so on logOut we remove the Item/token
+    // sessionStorage.removeItem("token");
+    this.props.history.push("/login");
+    console.log(this.props.history);
+  };
+
   render() {
     return (
       this.state.products &&
@@ -108,7 +131,10 @@ export default class HomePage extends Component {
                 Add at lest one product that works for you{" "}
               </p>
               {/* TODO Remember to change the userYesProducts props to just products */}
-              <NoSensitivity noSensitivity={this.state.noSensitivity} />
+              <NoSensitivity
+                noSensitivity={this.state.noSensitivity}
+                addProductNoSensitivity={this.addProductNoSensitivity}
+              />
 
               {/* Add these products to the "No"/Cause Reaction Array */}
               <p className="main__copy">
@@ -116,20 +142,25 @@ export default class HomePage extends Component {
                 Add products that you've had a negative reaction to
               </p>
               <YesSensitivity
-                handleClick={this.handleClick}
+                addProductSensitivity={this.addProductSensitivity}
                 yesSensitivity={this.state.yesSensitivity}
               />
             </div>
-            <h2 className="carousel__heading">DIVCOVER PRODUCTS</h2>
-            <p className="carousel__copy">
+            <h2 className="main__heading">DIVCOVER PRODUCTS</h2>
+            <p className="main__copy">
               We've curated some products that don't contain any of the
               ingredients you are sensitive to!
             </p>
             <ProductList products={this.state.products} />
-            <button type="button" onClick={this.logout}>
+            <button
+              className="main__btn-grad"
+              type="button"
+              onClick={this.logout}
+            >
               Log out
             </button>
           </main>
+          <Footer />
         </>
       )
     );

@@ -2,19 +2,23 @@
 @use "../../partials/mixins" as *;
 
 .main {
+  padding: 1rem;
   &__heading {
-    color: $primary-light;
+    color: rgb(177, 177, 177);
     font-size: 1.5rem;
+    padding: 1rem 0 0.5rem;
   }
   &__copy {
     font-size: 1rem;
-    color: $primary-light;
+    color: rgb(177, 177, 177);
+    padding-bottom: 1rem;
   }
 
   &__add-product {
     width: 1rem;
   }
   &__search {
+    padding: 0.5rem;
     background-color: white;
   }
   &__search--input {
@@ -22,8 +26,36 @@
     background-repeat: no-repeat;
     padding: $padding-increment;
     width: 100%;
+    margin-top: 1rem;
     border-radius: 20px;
     text-indent: 20px;
     border: 1px solid $primary-dark;
+  }
+
+  &__btn-grad {
+    background-image: linear-gradient(
+      to right,
+      $primary-dark 0%,
+      #ffdde1 51%,
+      #ee9ca7 100%
+    );
+  }
+  &__btn-grad {
+    margin: 10px;
+    padding: 5px 10px;
+    text-align: center;
+    transition: 0.5s;
+    background-size: 200% auto;
+    border: none;
+    color: white;
+    box-shadow: 0 0 20px #eee;
+    border-radius: 10px;
+    display: block;
+  }
+
+  &__btn-grad:hover {
+    background-position: right center; /* change the direction of the change here */
+    color: #fff;
+    text-decoration: none;
   }
 }

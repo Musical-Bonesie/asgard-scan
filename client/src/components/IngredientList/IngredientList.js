@@ -10,7 +10,11 @@ export default function IngredientList({ sensitiveToIngredients }) {
       <h1 className="header__heading">
         WE THINK YOU MAY HAVE SENSITIVITIES TO:
       </h1>
-      <img src={likelySensitive} alt="high likelyhood" />
+      <img
+        className="header__likelyImg"
+        src={likelySensitive}
+        alt="high likelyhood"
+      />
       {sensitiveToIngredients.map((ingredient) => {
         return (
           <section className="header__likelyhood" key={uuidv4()}>

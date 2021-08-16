@@ -1,0 +1,59 @@
+@use "../../partials/colors" as *;
+@use "../../partials/mixins" as *;
+
+.signUp {
+  background-color: $primary-dark;
+  &__banner {
+    width: 100vw;
+  }
+  &__heading {
+    color: white;
+    text-align: center;
+    padding: 1rem 0;
+  }
+  &__form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+    height: 90vh;
+  }
+  &__input {
+    border-radius: 10px;
+    border: none;
+    padding: 0.2rem;
+    margin: 0.5rem 0;
+    &::placeholder {
+      padding: 0.5rem;
+    }
+  }
+  &__label {
+    color: white;
+  }
+  &__btn-grad {
+    background-image: linear-gradient(
+      to right,
+      $primary-dark 0%,
+      #ffdde1 51%,
+      #ee9ca7 100%
+    );
+  }
+  &__btn-grad {
+    margin: 10px;
+    padding: 5px 10px;
+    text-align: center;
+    transition: 0.5s;
+    background-size: 200% auto;
+    border: none;
+    color: white;
+    box-shadow: 0 0 20px #eee;
+    border-radius: 10px;
+    display: block;
+  }
+
+  &__btn-grad:hover {
+    background-position: right center; /* change the direction of the change here */
+    color: #fff;
+    text-decoration: none;
+  }
+}

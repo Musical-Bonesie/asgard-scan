@@ -40,6 +40,8 @@ export default class ProductList extends Component {
                   className="product-list__link"
                   to={`/products/${item.id}`}
                 >
+                  {" "}
+                  <img src={item.image} alt={item.productName} />
                   <h4 className="product-list__data">{item.productName}</h4>
                   <p className="product-list__label">{item.brandName}</p>
                 </Link>
