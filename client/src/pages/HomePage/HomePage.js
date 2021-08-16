@@ -11,11 +11,13 @@ import { getProducts, getUser } from "../../utils/dataUtils";
 export default class HomePage extends Component {
   state = {
     products: null,
+    displayProducts: null,
     userNoProducts: null,
     userYesProducts: null,
     currentUser: null,
     sensitiveToIngredients: null,
     item: null,
+    ingredientSearch: [],
   };
   componentDidMount() {
     getProducts()
@@ -46,7 +48,6 @@ export default class HomePage extends Component {
           sensitiveToIngredients: ingredientSensitivity,
           userNoProducts: res.data[0].no_products,
         });
-        console.log(this.state.userYesProducts);
       })
       .catch((error) => {
         console.log("error in componentDIdMount", error);
@@ -57,6 +58,19 @@ export default class HomePage extends Component {
   handleClick = (item) => {
     this.setState({ item: item });
     console.log("carousel button was clicked:", item);
+  };
+
+  //TODO fix this: right now it pulls up products WITH the ingredients searched
+  handleOnChange = (event) => {
+    event.preventDefault();
+    console.log(event.target.value);
+    const searchIngredients = event.target.value.toLowerCase();
+    this.setState({
+      displayProducts: this.state.products.filter((product) => {
+        return product.ingredients.toLowerCase().includes(searchIngredients);
+      }),
+    });
+    console.log(this.state.displayProducts);
   };
   render() {
     return (
