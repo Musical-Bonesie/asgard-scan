@@ -5,7 +5,7 @@
     "last_name":"Appleseed",
     "email":"mia@gmail.com",
     "password":"password",
-    "yes_products":[
+    "yes_sensitivity":[
             {
                 "id":"525151831",
                 "brandName":"EAST29TH",
@@ -29,7 +29,7 @@
             }
         
     ],
-    "no_products":[
+    "no_sensitivity":[
         {
             "id":"93994516",
             "brandName":"HENNE ORGANICS",
