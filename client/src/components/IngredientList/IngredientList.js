@@ -1,5 +1,7 @@
 import likelySensitive from "../../assets/logo/high-likelyhood-text.svg";
 import alertIcon from "../../assets/logo/alert-icon.svg";
+import { v4 as uuidv4 } from "uuid";
+
 import "./IngredientList.scss";
 
 export default function IngredientList({ sensitiveToIngredients }) {
@@ -11,7 +13,7 @@ export default function IngredientList({ sensitiveToIngredients }) {
       <img src={likelySensitive} alt="high likelyhood" />
       {sensitiveToIngredients.map((ingredient) => {
         return (
-          <section className="header__likelyhood">
+          <section className="header__likelyhood" key={uuidv4()}>
             <p className="header__ingredients">{ingredient}</p>
             <img
               className="header__alert-icon"

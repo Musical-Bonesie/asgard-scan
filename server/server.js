@@ -5,6 +5,7 @@ const productsRoutes = require("./routes/products");
 const usersRoutes = require("./routes/users");
 
 app.use(cors());
+app.use(express.static("public/Images"));
 //helps avoid issues with reading the req body.
 app.use(express.json());
 
