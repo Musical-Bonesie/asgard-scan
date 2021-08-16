@@ -38,7 +38,7 @@
             "price":"49.00",
             "category":"lipcare",
             "status":"sensitivity",
-            "image":""    
+            "image":"ava_isa_rose.svg"    
             
         },{
             "id":"381603883",
@@ -47,7 +47,7 @@
             "ingredients":"Peanut Butter, Nigella Sativa (Black Cumin) Seed Oil, Cannabis Sativa (Hemp) Seed Oil, Octyldodecanol, Caprylic/Capric Triglyceride, Vitis Vinifera (Grape) Seed Oil, Squalane, Simmondsia Chinensis (Jojoba) Seed Oil, Vaccinium Macrocarpon (Cranberry) Seed Oil, Bakuchiol, Salicylic Acid, Rosa Canina Fruit Oil, Calophyllum Inophyllum (Tamanu) Oil, Carthamus Tinctorius (Safflower) Seed Oil, Cucumis Sativus (Cucumber) Seed Oil, Daucus Carota Satia (Carrot) Seed Oil, Tocopherol, Achillea millefolium (Yarrow) Leaf Extract, Equisetum arvense) Horsetail Extract, Salvia officinalis (Sage) Leaf Extract, Lavandula angustifolia (Lavender) Flower Extract, Utica dioica (Nettle) Leaf Extract, Helianthus Annuus Seed Oil, Rosmarinus Officinalis Leaf Extract",
             "price":"83.00",
             "category":"serum",
-            "image":"" 
+            "image":"ava_isa_rose.svg" 
             
         }
     

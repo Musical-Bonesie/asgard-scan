@@ -28,7 +28,7 @@
 
   &__button {
     font-size: 1rem;
-    width: 2.9rem;
+    width: 3rem;
   }
   &__disclaimer {
     color: rgb(213, 207, 207);
@@ -41,14 +41,14 @@
   background-image: linear-gradient(
     to right,
     $primary-dark 0%,
-    $primary-light 51%,
-    $primary-dark 100%
+    #ffdde1 51%,
+    #ee9ca7 100%
   );
 }
 .btn-grad {
   border: none;
   margin: 10px;
-  padding: 7px 33px;
+  padding: 3px 7px;
   text-align: center;
   transition: 0.5s;
   background-size: 200% auto;

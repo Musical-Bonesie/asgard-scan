@@ -1,0 +1,15 @@
+@use "../../partials/colors" as *;
+@use "../../partials/mixins" as *;
+
+.footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 20vh;
+  background-color: $primary-dark;
+  &__reserved {
+    color: white;
+    font-size: 0.5rem;
+    font-weight: 200;
+  }
+}

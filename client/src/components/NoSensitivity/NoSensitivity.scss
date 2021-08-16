@@ -1,5 +1,7 @@
-@import "~bootstrap/scss/bootstrap";
-.card {
+@use "../../partials/colors" as *;
+@use "../../partials/mixins" as *;
+
+.cardNotSensitive {
   display: flex;
   flex-wrap: wrap;
 
@@ -10,22 +12,21 @@
     background-image: url(../../assets//logo/product-background.svg);
     background-repeat: no-repeat;
     background-size: contain;
-    width: 50vw;
     margin: 0 auto;
     position: relative;
   }
   &__image {
-    // position: absolute;
+    max-width: 100%;
   }
   &__button {
     width: 3rem;
-    position: absolute;
-    top: 5rem;
+    z-index: 1;
   }
   &__body {
     flex-basis: 100%;
   }
   &__heading {
-    font-size: 1rem;
+    font-size: 0.7rem;
+    color: $primary-dark;
   }
 }
