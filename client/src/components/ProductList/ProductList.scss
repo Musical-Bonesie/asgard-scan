@@ -17,17 +17,17 @@
     margin: 0 auto;
   }
   &__content {
-    color: rgb(177, 177, 177);
+    color: $primary-grey;
   }
   &__item {
-    color: rgb(177, 177, 177);
+    color: $primary-grey;
   }
   &__link {
     font-size: 1.5;
     text-decoration: none;
   }
   &__data {
-    color: rgb(177, 177, 177);
+    color: $primary-grey;
     font-size: 1rem;
   }
   &__label {

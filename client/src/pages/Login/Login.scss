@@ -2,64 +2,69 @@
 @use "../../partials/mixins" as *;
 
 .login {
+  padding-top: 9rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   background-color: $primary-dark;
+  &__heading {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin: 3rem 1rem 2rem;
+    color: white;
+  }
   &__form {
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 100%;
   }
-  &__input {
+  &__logo {
+    width: 30vw;
+  }
+  &__input-top {
     display: block;
-    border-radius: 15px;
-    padding: 0.3rem;
-    margin: 0 auto;
+    border-radius: 10px 10px 1px 1px;
+    padding: 0.5rem;
+    margin: 0;
+    border: none;
+    width: 50%;
     &::placeholder {
       text-indent: 30%;
     }
   }
-  &__heading {
-    font-size: 1.5rem;
-    margin: 1rem;
-    color: white;
+  &__input-bottom {
+    display: block;
+    border-radius: 1px 1px 10px 10px;
+    padding: 0.5rem;
+    margin: 0.1rem;
+    border: none;
+    width: 50%;
+    &::placeholder {
+      text-indent: 30%;
+    }
   }
 
+  &__label {
+    font-size: 0.75rem;
+    color: white;
+    padding: 1rem 0 0.3rem;
+  }
   &__button {
     font-size: 1rem;
-    width: 3rem;
+    padding: 0.75rem 0;
+    width: 4rem;
+  }
+
+  &__signUp-link {
+    color: white;
+    font-size: 0.5rem;
+    padding: 1.5rem 0.5rem 0;
+    text-decoration: underline;
   }
   &__disclaimer {
     color: rgb(213, 207, 207);
     font-size: 0.5rem;
-    padding: 3rem 1rem;
+    padding: 6rem;
   }
-}
-
-.btn-grad {
-  background-image: linear-gradient(
-    to right,
-    $primary-dark 0%,
-    #ffdde1 51%,
-    #ee9ca7 100%
-  );
-}
-.btn-grad {
-  border: none;
-  margin: 10px;
-  padding: 3px 7px;
-  text-align: center;
-  transition: 0.5s;
-  background-size: 200% auto;
-  color: white;
-  box-shadow: 0 0 20px #eee;
-  border-radius: 50%;
-  display: block;
-}
-
-.btn-grad:hover {
-  background-position: right center; /* change the direction of the change here */
-  color: #fff;
-  text-decoration: none;
 }

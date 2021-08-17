@@ -2,14 +2,19 @@
 @use "../../partials/mixins" as *;
 
 .signUp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   background-color: $primary-dark;
-  &__banner {
-    width: 100vw;
+
+  &__logo {
+    width: 30vw;
   }
   &__heading {
     color: white;
-    text-align: center;
-    padding: 1rem 0;
+
+    font-size: 1rem;
+    padding: 1rem 5.5rem;
   }
   &__form {
     display: flex;
@@ -34,8 +39,8 @@
     background-image: linear-gradient(
       to right,
       $primary-dark 0%,
-      #ffdde1 51%,
-      #ee9ca7 100%
+      #eb488c 51%,
+      #f2a6c7 100%
     );
   }
   &__btn-grad {
