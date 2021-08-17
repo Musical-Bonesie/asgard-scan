@@ -4,7 +4,13 @@ import YesSensitivity from "../../components/YesSensitivity/YesSensitivity";
 import ProductList from "../../components/ProductList/ProductList";
 import IngredientList from "../../components/IngredientList/IngredientList";
 import Footer from "../../components/Footer/index";
-import { getProducts, getUser } from "../../utils/dataUtils";
+import {
+  getProducts,
+  getUser,
+  getSingleUser,
+  addNotSensitiveProduct,
+  addSensitiveToProduct,
+} from "../../utils/dataUtils";
 import "./HomePage.scss";
 
 export default class HomePage extends Component {
@@ -19,22 +25,25 @@ export default class HomePage extends Component {
     ingredientSearch: [],
   };
   componentDidMount() {
+    const userID = this.props.match.params.id;
+
     getProducts()
       .then((res) => {
         this.setState({
           products: res.data,
         });
-        console.log(res.data);
-        return getUser();
+
+        return getSingleUser(userID);
       })
       .then((res) => {
-        this.setState({ noSensitivity: res.data[0].no_sensitivity });
-        let yesIngredients = res.data[0].no_sensitivity.map((item) =>
+        console.log(res.data);
+        this.setState({ noSensitivity: res.data.no_sensitivity });
+        let yesIngredients = res.data.no_sensitivity.map((item) =>
           item.ingredients.toLowerCase()
         );
         const notSensitiveToArray = yesIngredients.toString().split(",");
 
-        let noIngredients = res.data[0].yes_sensitivity.map((item) =>
+        let noIngredients = res.data.yes_sensitivity.map((item) =>
           item.ingredients.toLowerCase()
         );
         const sensitiveToArray = noIngredients.toString().split(",");
@@ -42,12 +51,11 @@ export default class HomePage extends Component {
         const ingredientSensitivity = sensitiveToArray.filter(
           (ingredient) => !notSensitiveToArray.includes(ingredient)
         );
-        console.log(ingredientSensitivity);
 
         this.setState({
           sensitiveToIngredients: ingredientSensitivity,
-          noSensitivity: res.data[0].no_sensitivity,
-          yesSensitivity: res.data[0].yes_sensitivity,
+          noSensitivity: res.data.no_sensitivity,
+          yesSensitivity: res.data.yes_sensitivity,
         });
       })
       .catch((error) => {
@@ -57,16 +65,37 @@ export default class HomePage extends Component {
 
   // TODO move getUser and ingredients into this function sensitiveTo() {}
   addProductSensitivity = (product) => {
+    const userID = this.props.match.params.id;
+
     this.setState({ item: product });
     console.log("I'm sensitive to this product:", product);
+    // addSensitiveToProduct(userID, product)
+    //   .then((res) => {
+    //     console.log(res.data);
+    //     //TODO do I need to setState if the file changed? this.setState({ noSensitivity });
+    //   })
+    //   .catch((error) => {
+    //     console.log("product did not add", error);
+    //   });
+    // console.log(this.state.yesSensitivity);
   };
 
   addProductNoSensitivity = (product) => {
+    const userID = this.props.match.params.id;
     this.setState({ item: product });
     console.log("I'm not sensitive to this product:", product);
+    addNotSensitiveProduct(userID, product)
+      .then((res) => {
+        console.log(res.data);
+        //return get.()
+        //TODO do I need to setState if the file changed? this.setState({ noSensitivity });
+      })
+      .catch((error) => {
+        console.log("product did not add", error);
+      });
+    console.log(this.state.noSensitivity);
   };
-
-  //TODO fix this: right now it pulls up products WITH the ingredients searched
+  //User types ingredents into the search bar and returns products in the SEE MORE
   handleOnChange = (event) => {
     event.preventDefault();
     console.log(event.target.value);
@@ -74,15 +103,12 @@ export default class HomePage extends Component {
     console.log(searchIngredients);
     const searchArr = searchIngredients.split(",");
     console.log(searchIngredients);
-    console.log(searchArr); // TODO delete this probably don't need an array?
+    console.log(searchArr);
 
     this.setState({
-      displayProducts: this.state.products.filter((product) =>
-        // product.ingredients.toLowerCase() !== searchIngredients
-        {
-          return product.ingredients.toLowerCase().includes(searchIngredients);
-        }
-      ),
+      displayProducts: this.state.products.filter((product) => {
+        return !product.ingredients.toLowerCase().includes(searchIngredients);
+      }),
     });
     console.log(this.state.displayProducts);
   };
@@ -95,6 +121,16 @@ export default class HomePage extends Component {
   };
 
   render() {
+    console.log(this.state.products);
+    //ingredent list
+    console.log(this.state.sensitiveToIngredients);
+    // user no_sensitivity list:
+    console.log(this.state.noSensitivity);
+    //user yes_sensitivity list:
+    console.log(this.state.yesSensitivity);
+    //null until user searchs for products without certain ingredients
+    console.log(this.state.displayProducts);
+
     return (
       this.state.products &&
       this.state.sensitiveToIngredients &&
@@ -127,7 +163,7 @@ export default class HomePage extends Component {
                 Add at lest one product that works for you{" "}
               </p>
               <NoSensitivity
-                noSensitivity={this.state.noSensitivity}
+                products={this.state.products}
                 addProductNoSensitivity={this.addProductNoSensitivity}
               />
 
@@ -137,7 +173,7 @@ export default class HomePage extends Component {
               </p>
               <YesSensitivity
                 addProductSensitivity={this.addProductSensitivity}
-                yesSensitivity={this.state.yesSensitivity}
+                products={this.state.products}
               />
             </div>
             <h2 className="main__heading">DIVCOVER PRODUCTS</h2>
@@ -145,7 +181,8 @@ export default class HomePage extends Component {
               We've curated some products that don't contain any of the
               ingredients you are sensitive to!
             </p>
-            <ProductList products={this.state.products} />
+            {/* //TODO change to display products  */}
+            <ProductList displayProducts={this.state.displayProducts} />
             <button
               className="main__btn-grad"
               type="button"

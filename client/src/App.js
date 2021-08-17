@@ -8,23 +8,16 @@ import NoSensitivity from "./components/NoSensitivity/NoSensitivity";
 import YesSensitivity from "./components/YesSensitivity/YesSensitivity";
 
 function App() {
+  /// sessionStorage.
   return (
     <div className="App">
       <BrowserRouter>
         <Header />
         <Switch>
           <Route path="/" exact component={HomePage} />
-          <Route path="/products" exact component={HomePage} />
-          <Route
-            path="/users/notsensitive/:userID"
-            exact
-            component={NoSensitivity}
-          />
-          <Route
-            path="/users/sensitive/:userID"
-            exact
-            component={YesSensitivity}
-          />
+          <Route path="/asgardscan/:id" exact component={HomePage} />
+          <Route path="/asgardscan/:userID" exact component={NoSensitivity} />
+          <Route path="/asgardscan/:userID" exact component={YesSensitivity} />
           <Route path="/login" exact component={Login} />
           <Route path="/signup" exact component={SignUp} />
           {/* <ProtectedRoute to="/" exact component={HomePage} /> */}

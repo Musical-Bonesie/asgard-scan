@@ -1,4 +1,3 @@
-import AllRights from "../../assets/logo/all-rights-reserved.svg";
 import "./Footer.scss";
 
 export default function Footer() {

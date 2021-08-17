@@ -1,18 +1,15 @@
 import { v4 as uuidv4 } from "uuid";
-
+import { PORT } from "../../utils/dataUtils";
 import add from "../../assets/logo/add-product.svg";
 import "./YesSensitivity.scss";
 
-export default function YesSensitivity({
-  addProductSensitivity,
-  yesSensitivity,
-}) {
+export default function YesSensitivity({ addProductSensitivity, products }) {
   //TODO now the the button works and goes to the handleClick function on HomePage.
   // add the functionality to get the product added to the correct users yes_sensitivity list in DB
 
   return (
     <div className="cardSensitive">
-      {yesSensitivity.map((product) => {
+      {products.map((product) => {
         let product_id = product.id;
         return (
           <div className="cardSensitive__content" key={uuidv4()}>
@@ -20,7 +17,7 @@ export default function YesSensitivity({
               alt={product.productName}
               className="cardSensitive__image"
               variant="top"
-              src={product.image}
+              src={`${PORT}${product.image}`}
             />
             <img
               onClick={() => addProductSensitivity(product_id)}
