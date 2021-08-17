@@ -6,8 +6,8 @@ const public = path.join(__dirname, "public");
 //GET
 router.get("/", usersController.getUser);
 
-//POST
-//add a yes product to user's yes_product list
-router.post("/yesproducts/:userID", usersController.addYesProduct);
+//PATCH
+//user adds a product that they are NOT sensitive to:
+router.patch("/notsensitive/:userID", usersController.addNoSensitivity);
 
 module.exports = router;

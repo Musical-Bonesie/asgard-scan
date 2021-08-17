@@ -1,20 +1,25 @@
 const usersModel = require("../models/usersModel");
 const uuid = require("uuid");
+const fs = require("fs");
 
 function getUser(req, res) {
   const users = usersModel.getUser();
   res.status(200).json(users);
 }
 
-//TODO figure out why this isnt't working..
-function addYesProduct(req, res) {
+//TODO add to the no_sensitivity list/Yes Products figure out why this isnt't working..
+function addNoSensitivity(req, res) {
   const users = usersModel.getUser();
-  const singleUser = users.filter((user) => req.params.id === user.id);
+  console.log(users);
+  const singleUser = users.find((user) => req.params.userID === user.id);
   console.log(singleUser);
-  singleUser.yes_products.push({ ...req.body });
+
+  singleUser.no_sensitivity.push(req.body);
   console.log(singleUser);
-  usersModel.setUser(singleUser);
-  res.statue(201).json(req.body);
+  console.log(users);
+  fs.writeFileSync("./data/users.json", JSON.stringify(users));
+  //TODO try this usersModel.setUser(users);
+  res.status(201).json(req.body);
 }
 function addUser(req, res) {
   // Get the list of inventory items from inventories.json using the model.
@@ -42,4 +47,4 @@ function addUser(req, res) {
 //     }
 //   }
 
-module.exports = { getUser, addUser, addYesProduct };
+module.exports = { getUser, addUser, addNoSensitivity };
