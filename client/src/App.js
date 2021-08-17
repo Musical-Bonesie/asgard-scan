@@ -15,8 +15,16 @@ function App() {
         <Switch>
           <Route path="/" exact component={HomePage} />
           <Route path="/products" exact component={HomePage} />
-          <Route path="/nosensitivity" exact component={NoSensitivity} />
-          <Route path="/yessensitivity" exact component={YesSensitivity} />
+          <Route
+            path="/users/notsensitive/:userID"
+            exact
+            component={NoSensitivity}
+          />
+          <Route
+            path="/users/sensitive/:userID"
+            exact
+            component={YesSensitivity}
+          />
           <Route path="/login" exact component={Login} />
           <Route path="/signup" exact component={SignUp} />
           {/* <ProtectedRoute to="/" exact component={HomePage} /> */}
