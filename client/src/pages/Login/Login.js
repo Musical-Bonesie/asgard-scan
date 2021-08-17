@@ -54,7 +54,12 @@ export default class Login extends Component {
             placeholder="password"
             onChange={this.handleChange}
           />
-          <input src={button} className="login__button" type="image" />
+          <input
+            src={button}
+            className="login__button"
+            type="image"
+            alt="login button"
+          />
 
           <div
             className="login__signUp-link"
