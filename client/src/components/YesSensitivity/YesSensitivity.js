@@ -7,10 +7,9 @@ export default function YesSensitivity({
   addProductSensitivity,
   yesSensitivity,
 }) {
-  //TODO now the the button works and goes to the handleClick function on hommePage.
-  // Map through no_products map through no_products and if it was clicked --> gets added to the no_product array list of that user.
-  //might have to create a yesproductHandleClick and a noproductHandleClick to track which products go to which list
-  //
+  //TODO now the the button works and goes to the handleClick function on HomePage.
+  // add the functionality to get the product added to the correct users yes_sensitivity list in DB
+
   return (
     <div className="cardSensitive">
       {yesSensitivity.map((product) => {

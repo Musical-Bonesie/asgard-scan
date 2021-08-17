@@ -6,12 +6,7 @@ export default function NoSensitivity({
   addProductNoSensitivity,
   noSensitivity,
 }) {
-  // let product_id = userYesProducts;
-
-  //TODO now the the button works and goes to the handleClick function on hommePage.
-  // Map through no_products map through no_products and if it was clicked --> gets added to the no_product array list of that user.
-  //might have to create a yesproductHandleClick and a noproductHandleClick to track which products go to which list
-  //
+  //TODO now the the button works and goes to the handleClick function on HomePage add it to the users no_sensitivity list in DB
   return (
     <div className="cardNotSensitive">
       {noSensitivity.map((product) => {

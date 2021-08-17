@@ -1,14 +1,11 @@
 import React, { Component } from "react";
-// import likelySensitive from "../../assets/logo/high-likelyhood-text.svg";
-// import alertIcon from "../../assets/logo/alert-icon.svg";
-// import add from "../../assets/logo/add-product.svg";
 import NoSensitivity from "../../components/NoSensitivity/index";
 import YesSensitivity from "../../components/YesSensitivity/YesSensitivity";
 import ProductList from "../../components/ProductList/ProductList";
 import IngredientList from "../../components/IngredientList/IngredientList";
 import Footer from "../../components/Footer/index";
-import "./HomePage.scss";
 import { getProducts, getUser } from "../../utils/dataUtils";
+import "./HomePage.scss";
 
 export default class HomePage extends Component {
   state = {
@@ -91,8 +88,8 @@ export default class HomePage extends Component {
   };
 
   logout = () => {
-    //created sessionStorage to loggin so on logOut we remove the Item/token
-    // sessionStorage.removeItem("token");
+    //created sessionStorage to loggin so on log out we remove the item/token: i.e sesstionStorage.removeItem()
+    //sessionStorage.removeItem("token");
     this.props.history.push("/login");
     console.log(this.props.history);
   };
@@ -125,18 +122,15 @@ export default class HomePage extends Component {
                 />
               </label>
               <h2 className="main__heading">AM I SENSITIVE?</h2>
-              {/* // add these products to the "Yes" Products Array */}
 
               <p className="main__copy">
                 Add at lest one product that works for you{" "}
               </p>
-              {/* TODO Remember to change the userYesProducts props to just products */}
               <NoSensitivity
                 noSensitivity={this.state.noSensitivity}
                 addProductNoSensitivity={this.addProductNoSensitivity}
               />
 
-              {/* Add these products to the "No"/Cause Reaction Array */}
               <p className="main__copy">
                 {" "}
                 Add products that you've had a negative reaction to
