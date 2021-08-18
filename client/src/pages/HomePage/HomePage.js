@@ -36,33 +36,57 @@ export default class HomePage extends Component {
         return getSingleUser(userID);
       })
       .then((res) => {
-        console.log(res.data);
-        this.setState({ noSensitivity: res.data.no_sensitivity });
-        let yesIngredients = res.data.no_sensitivity.map((item) =>
-          item.ingredients.toLowerCase()
-        );
-        const notSensitiveToArray = yesIngredients.toString().split(",");
-
-        let noIngredients = res.data.yes_sensitivity.map((item) =>
-          item.ingredients.toLowerCase()
-        );
-        const sensitiveToArray = noIngredients.toString().split(",");
-
-        const ingredientSensitivity = sensitiveToArray.filter(
-          (ingredient) => !notSensitiveToArray.includes(ingredient)
-        );
-
-        this.setState({
-          sensitiveToIngredients: ingredientSensitivity,
-          noSensitivity: res.data.no_sensitivity,
-          yesSensitivity: res.data.yes_sensitivity,
-        });
+        this.getSensitivityIngredients(res);
       })
       .catch((error) => {
         console.log("error in componentDIdMount", error);
       });
   }
+  // //Find ingredients that the user is senstive to by comparing their no_sensitivity list to yes_sensitivity list
+  // and return ingredients not in the no_sensitivity list.
+  getSensitivityIngredients = (res) => {
+    console.log(res.data);
+    this.setState({ noSensitivity: res.data.no_sensitivity });
+    let yesIngredients = res.data.no_sensitivity.map((item) =>
+      item.ingredients.toLowerCase()
+    );
+    const notSensitiveToArray = yesIngredients.toString().split(",");
 
+    let noIngredients = res.data.yes_sensitivity.map((item) =>
+      item.ingredients.toLowerCase()
+    );
+    const sensitiveToArray = noIngredients.toString().split(",");
+
+    const ingredientSensitivity = sensitiveToArray.filter(
+      (ingredient) => !notSensitiveToArray.includes(ingredient)
+    );
+
+    this.setState({
+      sensitiveToIngredients: ingredientSensitivity,
+      noSensitivity: res.data.no_sensitivity,
+      yesSensitivity: res.data.yes_sensitivity,
+    });
+  };
+  upDateNotSesitiveTo = (res) => {
+    let yesIngredients = res.data.no_sensitivity.map((item) =>
+      item.ingredients.toLowerCase()
+    );
+    const notSensitiveToArray = yesIngredients.toString().split(",");
+
+    let noIngredients = res.data.yes_sensitivity.map((item) =>
+      item.ingredients.toLowerCase()
+    );
+    const sensitiveToArray = noIngredients.toString().split(",");
+
+    const ingredientSensitivity = sensitiveToArray.filter(
+      (ingredient) => !notSensitiveToArray.includes(ingredient)
+    );
+
+    this.setState({
+      sensitiveToIngredients: ingredientSensitivity,
+      noSensitivity: res.data.no_sensitivity,
+    });
+  };
   // TODO move getUser and ingredients into this function sensitiveTo() {}
   addProductSensitivity = (product) => {
     const userID = this.props.match.params.id;
@@ -79,7 +103,7 @@ export default class HomePage extends Component {
     //   });
     // console.log(this.state.yesSensitivity);
   };
-
+  //Add product that user is NOT sensitive to and it compares ingredient list to products user IS sensitive to
   addProductNoSensitivity = (product) => {
     const userID = this.props.match.params.id;
     this.setState({ item: product });
@@ -87,15 +111,22 @@ export default class HomePage extends Component {
     addNotSensitiveProduct(userID, product)
       .then((res) => {
         console.log(res.data);
-        //return get.()
-        //TODO do I need to setState if the file changed? this.setState({ noSensitivity });
+        let addProduct = this.state.noSensitivity;
+
+        if (
+          !this.state.noSensitivity.find((product) => product.id == res.data.id)
+        )
+          addProduct.push(res.data);
+
+        console.log(addProduct);
+        this.setState({ noSensitivity: addProduct });
       })
       .catch((error) => {
         console.log("product did not add", error);
       });
     console.log(this.state.noSensitivity);
   };
-  //User types ingredents into the search bar and returns products in the SEE MORE
+  //User types ingredents into the search bar: water, coconut oil, etc...  and returns products that do not contain those ingredients shown in the SEE MORE section
   handleOnChange = (event) => {
     event.preventDefault();
     console.log(event.target.value);
