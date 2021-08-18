@@ -20,6 +20,7 @@ app.use("/products", productsRoutes);
 app.use("/users", usersRoutes);
 
 ////User Login
+//delete
 const users = {};
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
@@ -27,8 +28,6 @@ app.post("/login", (req, res) => {
   const token = jwt.sign({ user: username }, "Nonsesense");
   //checking to  make sure password matches user. If it doesn't we return status of 401
   if (user && user.password === password) {
-    // STEP 1: When a user provides a correct username/password,
-    // the user can be considered authenticated.
     // Create a JWT token for the user, and add their name to
     // the token. Send the token back to the client.
   }
