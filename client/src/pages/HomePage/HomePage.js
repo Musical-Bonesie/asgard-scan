@@ -102,10 +102,10 @@ export default class HomePage extends Component {
 
   //User adds products to their yes_sensitive
   addProductSensitivity = (product) => {
-    const userID = this.props.match.params.id;
+    // const userID = this.props.match.params.id;
     this.setState({ item: product });
     console.log("I'm sensitive to this product:", product);
-    addSensitiveToProduct(userID, product)
+    addSensitiveToProduct(this.state.userID, product)
       .then((res) => {
         let addProduct = this.state.yesSensitivity;
 
@@ -129,11 +129,11 @@ export default class HomePage extends Component {
 
   //Add product that user is NOT sensitive to and it compares ingredient list to products user IS sensitive to
   addProductNoSensitivity = (product) => {
-    const userID = this.props.match.params.id;
+    // const userID = this.props.match.params.id;
     //TODO delete the item and console
     this.setState({ item: product });
     console.log("I'm not sensitive to this product:", product);
-    addNotSensitiveProduct(userID, product)
+    addNotSensitiveProduct(this.state.userID, product)
       .then((res) => {
         console.log(res.data);
         let addProduct = this.state.noSensitivity;
@@ -182,7 +182,7 @@ export default class HomePage extends Component {
   };
 
   render() {
-    console.log("token", this.state.token);
+    console.log("userID", this.state.userID);
     console.log(this.state.products);
     //ingredent list
     console.log(this.state.sensitiveToIngredients);
