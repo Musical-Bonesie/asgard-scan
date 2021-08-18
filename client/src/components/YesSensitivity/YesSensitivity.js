@@ -10,7 +10,6 @@ export default function YesSensitivity({ addProductSensitivity, products }) {
   return (
     <div className="cardSensitive">
       {products.map((product) => {
-        let product_id = product.id;
         return (
           <div className="cardSensitive__content" key={uuidv4()}>
             <img
@@ -20,7 +19,7 @@ export default function YesSensitivity({ addProductSensitivity, products }) {
               src={`${PORT}${product.image}`}
             />
             <img
-              onClick={() => addProductSensitivity(product_id)}
+              onClick={() => addProductSensitivity(product)}
               className="cardSensitive__button"
               src={add}
               alt="add a yes product"

@@ -46,28 +46,10 @@ export default class HomePage extends Component {
   // and return ingredients not in the no_sensitivity list.
   getSensitivityIngredients = (res) => {
     console.log(res.data);
-    this.setState({ noSensitivity: res.data.no_sensitivity });
-    let yesIngredients = res.data.no_sensitivity.map((item) =>
-      item.ingredients.toLowerCase()
-    );
-    const notSensitiveToArray = yesIngredients.toString().split(",");
-
-    let noIngredients = res.data.yes_sensitivity.map((item) =>
-      item.ingredients.toLowerCase()
-    );
-    const sensitiveToArray = noIngredients.toString().split(",");
-
-    const ingredientSensitivity = sensitiveToArray.filter(
-      (ingredient) => !notSensitiveToArray.includes(ingredient)
-    );
-
     this.setState({
-      sensitiveToIngredients: ingredientSensitivity,
       noSensitivity: res.data.no_sensitivity,
       yesSensitivity: res.data.yes_sensitivity,
     });
-  };
-  upDateNotSesitiveTo = (res) => {
     let yesIngredients = res.data.no_sensitivity.map((item) =>
       item.ingredients.toLowerCase()
     );
@@ -84,28 +66,61 @@ export default class HomePage extends Component {
 
     this.setState({
       sensitiveToIngredients: ingredientSensitivity,
-      noSensitivity: res.data.no_sensitivity,
     });
   };
+  // upDateNotSesitiveTo = (res) => {
+  //   let yesIngredients = res.data.no_sensitivity.map((item) =>
+  //     item.ingredients.toLowerCase()
+  //   );
+  //   const notSensitiveToArray = yesIngredients.toString().split(",");
+
+  //   let noIngredients = res.data.yes_sensitivity.map((item) =>
+  //     item.ingredients.toLowerCase()
+  //   );
+  //   const sensitiveToArray = noIngredients.toString().split(",");
+
+  //   const ingredientSensitivity = sensitiveToArray.filter(
+  //     (ingredient) => !notSensitiveToArray.includes(ingredient)
+  //   );
+
+  //   this.setState({
+  //     sensitiveToIngredients: ingredientSensitivity,
+  //     // noSensitivity: res.data.no_sensitivity,
+  //     // yesSensitivity: res.data.yes_sensitivity,
+  //   });
+  // };
   // TODO move getUser and ingredients into this function sensitiveTo() {}
   addProductSensitivity = (product) => {
     const userID = this.props.match.params.id;
 
     this.setState({ item: product });
     console.log("I'm sensitive to this product:", product);
-    // addSensitiveToProduct(userID, product)
-    //   .then((res) => {
-    //     console.log(res.data);
-    //     //TODO do I need to setState if the file changed? this.setState({ noSensitivity });
-    //   })
-    //   .catch((error) => {
-    //     console.log("product did not add", error);
-    //   });
-    // console.log(this.state.yesSensitivity);
+    addSensitiveToProduct(userID, product)
+      .then((res) => {
+        console.log(res.data);
+        //     //TODO do I need to setState if the file changed? this.setState({ noSensitivity });
+        let addProduct = this.state.yesSensitivity;
+
+        if (
+          !this.state.yesSensitivity.find(
+            (product) => product.id === res.data.id
+          )
+        )
+          addProduct.push(res.data);
+
+        console.log(addProduct);
+        this.setState({ yesSensitivity: addProduct });
+      })
+      .catch((error) => {
+        console.log("product did not add", error);
+      });
+    console.log(this.state.yesSensitivity);
   };
+
   //Add product that user is NOT sensitive to and it compares ingredient list to products user IS sensitive to
   addProductNoSensitivity = (product) => {
     const userID = this.props.match.params.id;
+    //TODO delete the item and console
     this.setState({ item: product });
     console.log("I'm not sensitive to this product:", product);
     addNotSensitiveProduct(userID, product)
@@ -114,7 +129,9 @@ export default class HomePage extends Component {
         let addProduct = this.state.noSensitivity;
 
         if (
-          !this.state.noSensitivity.find((product) => product.id == res.data.id)
+          !this.state.noSensitivity.find(
+            (product) => product.id === res.data.id
+          )
         )
           addProduct.push(res.data);
 
@@ -164,7 +181,7 @@ export default class HomePage extends Component {
 
     return (
       this.state.products &&
-      this.state.sensitiveToIngredients &&
+      // this.state.sensitiveToIngredients &&
       this.state.noSensitivity &&
       this.state.yesSensitivity && (
         <>
