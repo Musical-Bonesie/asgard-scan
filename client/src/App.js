@@ -15,7 +15,7 @@ function App() {
         <Header />
         <Switch>
           <Route path="/" exact component={HomePage} />
-          <Route path="/asgardscan/:id" exact component={HomePage} />
+          <Route path="/asgardscan" exact component={HomePage} />
           <Route path="/asgardscan/:userID" exact component={NoSensitivity} />
           <Route path="/asgardscan/:userID" exact component={YesSensitivity} />
           <Route path="/login" exact component={Login} />
