@@ -15,6 +15,8 @@ import "./HomePage.scss";
 
 export default class HomePage extends Component {
   state = {
+    userID: null,
+    username: this.props.username,
     token: null,
     products: null,
     displayProducts: null,
@@ -27,22 +29,22 @@ export default class HomePage extends Component {
   };
 
   componentDidMount() {
-    // const userID = this.props.match.params.id;
-    const userID = "123";
-    let token = sessionStorage.getItem("token");
+    //TODO change user Auth so you use the token instead of username to find user
     const username = sessionStorage.getItem("username");
-    console.log(username);
-    console.log(token);
     this.setState({ token: sessionStorage.getItem("token") });
-    console.log(this.state.token);
 
     getProducts()
       .then((res) => {
         this.setState({
           products: res.data,
         });
-        //changes this from userID to trying to get sessionStorage
-        return getSingleUser(username);
+        return getUser();
+      })
+      .then((response) => {
+        console.log(response.data);
+        let findUser = response.data.find((user) => user.username === username);
+        this.setState({ userID: findUser.id });
+        return getSingleUser(this.state.userID);
       })
       .then((res) => {
         this.getSensitivityIngredients(res);
@@ -54,7 +56,6 @@ export default class HomePage extends Component {
   // //Find ingredients that the user is senstive to by comparing their no_sensitivity list to yes_sensitivity list
   // and return ingredients not in the no_sensitivity list.
   getSensitivityIngredients = (res) => {
-    console.log(res.data);
     this.setState({
       noSensitivity: res.data.no_sensitivity,
       yesSensitivity: res.data.yes_sensitivity,
@@ -102,13 +103,10 @@ export default class HomePage extends Component {
   //User adds products to their yes_sensitive
   addProductSensitivity = (product) => {
     const userID = this.props.match.params.id;
-
     this.setState({ item: product });
     console.log("I'm sensitive to this product:", product);
     addSensitiveToProduct(userID, product)
       .then((res) => {
-        console.log(res.data);
-        //     //TODO do I need to setState if the file changed? this.setState({ noSensitivity });
         let addProduct = this.state.yesSensitivity;
 
         if (
@@ -176,8 +174,9 @@ export default class HomePage extends Component {
   };
 
   logout = () => {
-    //TODO created sessionStorage to loggin so on log out we remove the item/token: i.e sesstionStorage.removeItem()
-    //sessionStorage.removeItem("token");
+    //created sessionStorage to loggin so on log out we remove the item/token: i.e sesstionStorage.removeItem()
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("username");
     this.props.history.push("/login");
     console.log(this.props.history);
   };
