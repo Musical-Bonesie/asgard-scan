@@ -6,28 +6,29 @@ import "./IngredientList.scss";
 
 export default function IngredientList({ sensitiveToIngredients }) {
   return (
-    <header className="header">
-      <h1 className="header__heading">
-        WE THINK YOU MAY HAVE SENSITIVITIES TO:
-      </h1>
-      <img
-        className="header__likelyImg"
-        src={likelySensitive}
-        alt="high likelyhood"
-      />
-      {sensitiveToIngredients.map((ingredient) => {
-        return (
-          <section className="header__likelyhood" key={uuidv4()}>
-            <p className="header__ingredients">{ingredient}</p>
-            <img
-              className="header__alert-icon"
-              alt="sensitive to icon"
-              src={alertIcon}
-            />
-          </section>
-        );
-      })}
-      {/* TODO keep this section or not? <img src={likelySensitive} alt="high likelyhood" />
+    sensitiveToIngredients && (
+      <header className="header">
+        <h1 className="header__heading">
+          WE THINK YOU MAY HAVE SENSITIVITIES TO:
+        </h1>
+        <img
+          className="header__likelyImg"
+          src={likelySensitive}
+          alt="high likelyhood"
+        />
+        {sensitiveToIngredients.map((ingredient) => {
+          return (
+            <section className="header__likelyhood" key={uuidv4()}>
+              <p className="header__ingredients">{ingredient}</p>
+              <img
+                className="header__alert-icon"
+                alt="sensitive to icon"
+                src={alertIcon}
+              />
+            </section>
+          );
+        })}
+        {/* TODO keep this section or not? <img src={likelySensitive} alt="high likelyhood" />
       <section className="header__likelyhood">
         <p className="header__ingredients">MODERATE LIKELYHOOD INGREDIENTS</p>
         <img
@@ -36,6 +37,7 @@ export default function IngredientList({ sensitiveToIngredients }) {
           src={alertIcon}
         />
       </section> */}
-    </header>
+      </header>
+    )
   );
 }
