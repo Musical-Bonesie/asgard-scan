@@ -52,7 +52,7 @@ model Products {
   brandName      String           @db.VarChar(255)
   productName    String           @db.VarChar(255)
   ingredients    String           @db.VarChar(2000)
-  price          Int
+  price          String
   category       String           @db.VarChar(255)
   status         String
   image          String

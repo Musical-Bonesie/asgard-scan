@@ -20,7 +20,6 @@ export default class Login extends Component {
   //add the functionality once DB is created.
   handleSubmit = (event) => {
     event.preventDefault();
-    this.props.history.push("/");
     axios
       .post("/login", this.state.formData)
       .then((res) => {
@@ -34,18 +33,17 @@ export default class Login extends Component {
       })
       .catch((error) => alert(error));
   };
-
+  componentWillUnmount() {
+    // fix Warning: Can't perform a React state update on an unmounted component
+    this.setState = (state, callback) => {
+      return;
+    };
+  }
   //Once sign-up button is clicked, it takes the user to sign-up page
   showSignUp = () => {
     this.props.history.push("/signup");
   };
   render() {
-    // {
-    //   this.state.token ? (
-    //     <HomePage username={this.state.username} />
-    //   ) : (
-    //     <Login />
-    //   );
     return (
       <div className="login">
         <img
@@ -92,6 +90,5 @@ export default class Login extends Component {
         </p>
       </div>
     );
-    // }
   }
 }
