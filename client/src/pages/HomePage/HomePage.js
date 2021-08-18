@@ -68,28 +68,29 @@ export default class HomePage extends Component {
       sensitiveToIngredients: ingredientSensitivity,
     });
   };
-  // upDateNotSesitiveTo = (res) => {
-  //   let yesIngredients = res.data.no_sensitivity.map((item) =>
-  //     item.ingredients.toLowerCase()
-  //   );
-  //   const notSensitiveToArray = yesIngredients.toString().split(",");
 
-  //   let noIngredients = res.data.yes_sensitivity.map((item) =>
-  //     item.ingredients.toLowerCase()
-  //   );
-  //   const sensitiveToArray = noIngredients.toString().split(",");
+  //update ingredient list once a product has been added to the no_sensitivitie list or yes_sensitivity list
+  upDateNotSesitiveTo = (res) => {
+    let yesIngredients = res.data.no_sensitivity.map((item) =>
+      item.ingredients.toLowerCase()
+    );
+    const notSensitiveToArray = yesIngredients.toString().split(",");
 
-  //   const ingredientSensitivity = sensitiveToArray.filter(
-  //     (ingredient) => !notSensitiveToArray.includes(ingredient)
-  //   );
+    let noIngredients = res.data.yes_sensitivity.map((item) =>
+      item.ingredients.toLowerCase()
+    );
+    const sensitiveToArray = noIngredients.toString().split(",");
 
-  //   this.setState({
-  //     sensitiveToIngredients: ingredientSensitivity,
-  //     // noSensitivity: res.data.no_sensitivity,
-  //     // yesSensitivity: res.data.yes_sensitivity,
-  //   });
-  // };
-  // TODO move getUser and ingredients into this function sensitiveTo() {}
+    const ingredientSensitivity = sensitiveToArray.filter(
+      (ingredient) => !notSensitiveToArray.includes(ingredient)
+    );
+
+    this.setState({
+      sensitiveToIngredients: ingredientSensitivity,
+    });
+  };
+
+  //User adds products to their yes_sensitive
   addProductSensitivity = (product) => {
     const userID = this.props.match.params.id;
 
@@ -110,6 +111,8 @@ export default class HomePage extends Component {
 
         console.log(addProduct);
         this.setState({ yesSensitivity: addProduct });
+        //test
+        this.upDateNotSesitiveTo(res);
       })
       .catch((error) => {
         console.log("product did not add", error);
@@ -137,6 +140,8 @@ export default class HomePage extends Component {
 
         console.log(addProduct);
         this.setState({ noSensitivity: addProduct });
+        //test
+        this.upDateNotSesitiveTo(res);
       })
       .catch((error) => {
         console.log("product did not add", error);
@@ -162,7 +167,7 @@ export default class HomePage extends Component {
   };
 
   logout = () => {
-    //created sessionStorage to loggin so on log out we remove the item/token: i.e sesstionStorage.removeItem()
+    //TODO created sessionStorage to loggin so on log out we remove the item/token: i.e sesstionStorage.removeItem()
     //sessionStorage.removeItem("token");
     this.props.history.push("/login");
     console.log(this.props.history);
@@ -181,7 +186,7 @@ export default class HomePage extends Component {
 
     return (
       this.state.products &&
-      // this.state.sensitiveToIngredients &&
+      // TODO this.state.sensitiveToIngredients &&
       this.state.noSensitivity &&
       this.state.yesSensitivity && (
         <>
