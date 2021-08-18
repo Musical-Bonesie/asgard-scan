@@ -15,6 +15,7 @@ import "./HomePage.scss";
 
 export default class HomePage extends Component {
   state = {
+    token: null,
     products: null,
     displayProducts: null,
     noSensitivity: null,
@@ -24,16 +25,24 @@ export default class HomePage extends Component {
     item: null,
     ingredientSearch: [],
   };
+
   componentDidMount() {
-    const userID = this.props.match.params.id;
+    // const userID = this.props.match.params.id;
+    const userID = "123";
+    let token = sessionStorage.getItem("token");
+    const username = sessionStorage.getItem("username");
+    console.log(username);
+    console.log(token);
+    this.setState({ token: sessionStorage.getItem("token") });
+    console.log(this.state.token);
 
     getProducts()
       .then((res) => {
         this.setState({
           products: res.data,
         });
-
-        return getSingleUser(userID);
+        //changes this from userID to trying to get sessionStorage
+        return getSingleUser(username);
       })
       .then((res) => {
         this.getSensitivityIngredients(res);
@@ -174,6 +183,7 @@ export default class HomePage extends Component {
   };
 
   render() {
+    console.log("token", this.state.token);
     console.log(this.state.products);
     //ingredent list
     console.log(this.state.sensitiveToIngredients);

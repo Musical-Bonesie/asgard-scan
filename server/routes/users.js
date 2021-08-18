@@ -2,6 +2,9 @@ const usersController = require("../controllers/usersController");
 const router = require("express").Router();
 const path = require("path");
 const public = path.join(__dirname, "public");
+const jwt = require("jsonwebtoken"); //jwt libary installed
+const bcrypt = require("bcryptjs"); // means within server directory ablity to encrypt passwords
+const authorize = require("../middleware/authorize"); // middleware to check there is an authroization header sent
 
 //GET
 router.get("/", usersController.getUsers);
