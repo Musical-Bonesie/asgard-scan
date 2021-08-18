@@ -1,0 +1,77 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  //create a primary key
+  id             Int              @id @default(autoincrement())
+  username       String           @unique @db.VarChar(255)
+  password       String           @unique
+  token          String
+  firstName      String
+  lastName       String
+  email          String           @unique
+  yesSensitivity YesSensitivity[]
+  noSensitivity  NoSensitivity[]
+
+}
+
+//Products that user is sensitive to
+//TODO turn price into string incase someone puts a $?
+
+model YesSensitivity {
+  id       Int        @id @default(autoincrement())
+  user     User       @relation(fields: [userId], references: [id])
+  userId   Int
+  products Products[] @relation(references: [id])
+
+
+}
+
+//Products that user is not sensitive to
+
+model NoSensitivity {
+  id       Int        @id @default(autoincrement())
+  user     User       @relation(fields: [userId], references: [id])
+  userId   Int
+  products Products[] @relation(references: [id])
+}
+
+//List of all products and the relation to no_sensitivity and yes_sensitivity list for each user
+
+model Products {
+  id             Int              @id @default(autoincrement())
+  brandName      String           @db.VarChar(255)
+  productName    String           @db.VarChar(255)
+  ingredients    String           @db.VarChar(2000)
+  price          Int
+  category       String           @db.VarChar(255)
+  status         String
+  image          String
+  noSensitivity  NoSensitivity[]  @relation(references: [id])
+  yesSensitivity YesSensitivity[] @relation(references: [id])
+
+}
+
+//TODO add this to add a password?
+// model Token {
+// id         Int       @id @default(autoincrement())
+// createdAt  DateTime  @default(now())
+// updatedAt  DateTime  @updatedAt
+// type       TokenType
+// emailToken String?   @unique // Only used for short lived email tokens
+// valid      Boolean   @default(true)
+// expiration DateTime
+
+// // Relation fields
+// user   User @relation(fields: [userId], references: [id])
+// userId Int
+// }

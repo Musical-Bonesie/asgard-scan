@@ -34,7 +34,8 @@ app.post("/login", (req, res) => {
   }
   res.status(201).json(token);
 });
-//PORT
+
+//PORT Listening on..
 app.listen(PORT, () => {
   console.log(`Server is now running on port ${PORT}`);
 });

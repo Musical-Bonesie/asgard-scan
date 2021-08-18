@@ -2,10 +2,24 @@ const usersModel = require("../models/usersModel");
 const uuid = require("uuid");
 const fs = require("fs");
 
+//for Prisma
+const { PrismaClient } = require("@prisma/client");
+const { user } = new PrismaClient();
 //GET user info
-function getUsers(req, res) {
-  const users = usersModel.getUser();
-  res.status(200).json(users);
+async function getUsers(req, res) {
+  // const users = usersModel.getUser();
+  // res.status(200).json(users)
+  const users = await user.findMany({
+    select: {
+      id: true,
+      username: true,
+      firstName: true,
+      lastName: true,
+      noSensitivity: true,
+      yesSensitivity: true,
+    },
+  });
+  res.json(users);
 }
 
 function getSingleUser(req, res) {
