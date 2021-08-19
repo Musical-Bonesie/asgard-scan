@@ -52,9 +52,11 @@ router.post("/", async (req, res) => {
 //PATCH
 //user adds a product that they are NOT sensitive to:
 // router.patch("/:userID", usersController.addNoSensitivity);
+//DB route on 56
 router.patch("/:userID", usersController.addNotSensitiveTo);
 
 //user adds product that they ARE sensitive to:
+//db route on 60:
 router.patch("/sensitive/:userID", usersController.addSensitiveTo);
 
 module.exports = router;
