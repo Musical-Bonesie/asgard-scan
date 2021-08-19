@@ -11,11 +11,12 @@ const authorize = require("../middleware/authorize"); // middleware to check the
 const { PrismaClient } = require("@prisma/client");
 const { user } = new PrismaClient();
 
-///.get all users is via prisma
+///GET all users from DB
 router.get("/", usersController.getUsers);
-///////
+//GET single user from DB
 router.get("/:id", usersController.getSingleUser);
 
+//Create user test to DB below////
 //POST Add a user remeber to add userAuth //TODO change this to add more user info
 router.post("/", async (req, res) => {
   console.log(req.body);
@@ -48,15 +49,13 @@ router.post("/", async (req, res) => {
   });
   res.json(newUser);
 });
+/////TEST above /////
 
 //PATCH
-//user adds a product that they are NOT sensitive to:
-// router.patch("/:userID", usersController.addNoSensitivity);
-//DB route on 56
+//user adds a product to noSensitive list in DB that they are NOT sensitive to:
 router.patch("/:userID", usersController.addNotSensitiveTo);
 
-//user adds product that they ARE sensitive to:
-//db route on 60:
+//user adds a product to yesSensitive DB list:
 router.patch("/sensitive/:userID", usersController.addSensitiveTo);
 
 module.exports = router;

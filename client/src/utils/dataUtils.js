@@ -13,5 +13,6 @@ export const addNotSensitiveProduct = (userID, product) =>
   axios.patch(`/users/${userID}`, product);
 
 export const addSensitiveToProduct = (userID, product) =>
-  axios.patch(`/users/${userID}`, product);
+  axios.patch(`/users/sensitive/${userID}`, product);
 //TODO make sure to test that this API call works
+//changed addSensitiveToProduct path since adding DB
