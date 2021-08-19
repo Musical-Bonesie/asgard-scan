@@ -21,31 +21,29 @@ async function getUsers(req, res) {
 }
 //Get a single user:
 async function getSingleUser(req, res) {
-  const { id } = req.body;
+  const { username } = req.params;
   const singleUser = await user.findUnique({
     where: {
-      id: id,
+      username: username,
+    },
+    select: {
+      id: true,
+      username: true,
+      firstName: true,
+      lastName: true,
+      noSensitivity: true,
+      yesSensitivity: true,
     },
   });
   res.status(200).json(singleUser);
 }
 // User adds a product that they are NOT sensitive to the No Sensitivity list. If it already exists, it won't be added.
 async function addNotSensitiveTo(req, res) {
-  const {
-    id,
-    brandName,
-    productName,
-    ingredients,
-    image,
-    price,
-    category,
-    status,
-    userId,
-  } = req.body;
-
+  const { id, brandName, productName, ingredients, image } = req.body;
+  const { username } = req.params;
   const userExists = await user.findUnique({
     where: {
-      id: userId,
+      username: username,
     },
   });
   if (!userExists) {
@@ -67,13 +65,11 @@ async function addNotSensitiveTo(req, res) {
         productName,
         ingredients,
         image,
-        price,
-        category,
-        status,
+
         // add/connect this product to this user
         user: {
           connect: {
-            id: userId,
+            username: username,
           },
         },
         products: {
@@ -93,10 +89,11 @@ async function addNotSensitiveTo(req, res) {
 
 //DB - User adds a product they are sensitive to to the yesSensitivity list. If it already exsits it won't be added to their list.
 async function addSensitiveTo(req, res) {
-  const { id, userId, brandName, productName, ingredients, image } = req.body;
+  const { id, brandName, productName, ingredients, image } = req.body;
+  const { username } = req.params;
   const userExists = await user.findUnique({
     where: {
-      id: userId,
+      username: username,
     },
   });
   if (!userExists) {
@@ -105,7 +102,6 @@ async function addSensitiveTo(req, res) {
     });
   }
 
-  const returnProduct = req.body;
   //
   const productAlreadyExists = await yesSensitivity.findFirst({
     where: {
@@ -118,9 +114,13 @@ async function addSensitiveTo(req, res) {
   if (!productAlreadyExists) {
     const addProduct = await yesSensitivity.create({
       data: {
+        brandName,
+        productName,
+        ingredients,
+        image,
         user: {
           connect: {
-            id: userId,
+            username: username,
           },
         },
         products: {
@@ -131,7 +131,7 @@ async function addSensitiveTo(req, res) {
       },
     });
     //TODO try adding addProduct as a second param .json(returnProduct, addProduct);
-    res.status(201).json(returnProduct);
+    res.status(201).json(addProduct);
   } else {
     return res.json({
       msg: "product already exsits on this list",
