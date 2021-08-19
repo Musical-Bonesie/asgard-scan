@@ -14,7 +14,7 @@ const { user } = new PrismaClient();
 ///GET all users from DB
 router.get("/", usersController.getUsers);
 //GET single user from DB
-router.get("/:id", usersController.getSingleUser);
+router.get("/:username", usersController.getSingleUser);
 
 //Create user test to DB below////
 //POST Add a user remeber to add userAuth //TODO change this to add more user info
@@ -53,9 +53,9 @@ router.post("/", async (req, res) => {
 
 //PATCH
 //user adds a product to noSensitive list in DB that they are NOT sensitive to:
-router.patch("/:userID", usersController.addNotSensitiveTo);
+router.patch("/:username", usersController.addNotSensitiveTo);
 
 //user adds a product to yesSensitive DB list:
-router.patch("/sensitive/:userID", usersController.addSensitiveTo);
+router.patch("/sensitive/:username", usersController.addSensitiveTo);
 
 module.exports = router;

@@ -6,7 +6,6 @@ import IngredientList from "../../components/IngredientList/IngredientList";
 import Footer from "../../components/Footer/index";
 import {
   getProducts,
-  getUser,
   getSingleUser,
   addNotSensitiveProduct,
   addSensitiveToProduct,
@@ -31,6 +30,7 @@ export default class HomePage extends Component {
   componentDidMount() {
     //TODO change user Auth so you use the token instead of username to find user
     const username = sessionStorage.getItem("username");
+    console.log(username);
     this.setState({ token: sessionStorage.getItem("token") });
     getProducts()
       .then((res) => {
@@ -38,38 +38,37 @@ export default class HomePage extends Component {
         this.setState({
           products: res.data,
         });
-        return getUser();
+        return getSingleUser(username);
       })
       .then((response) => {
         console.log(response.data);
-        let findUser = response.data.find((user) => user.username === username);
-        this.setState({ userID: findUser.id });
-        return getSingleUser(this.state.userID);
-      })
-      .then((res) => {
-        this.getSensitivityIngredients(res);
+        const user = response.data;
+        this.setState({
+          userID: user.id,
+          username: user.username,
+          yesSensitivity: user.yesSensitivity,
+          noSensitivity: user.noSensitivity,
+        });
+        this.getSensitivityIngredients(user);
       })
       .catch((error) => {
         console.log("error in componentDIdMount", error);
       });
   }
+
+  //test above//
+
   // //Find ingredients that the user is senstive to by comparing their no_sensitivity list to yes_sensitivity list
   // and return ingredients not in the no_sensitivity list.
-  getSensitivityIngredients = (res) => {
-    this.setState({
-      noSensitivity: res.data.no_sensitivity,
-      yesSensitivity: res.data.yes_sensitivity,
-    });
-    let yesIngredients = res.data.no_sensitivity.map((item) =>
+  getSensitivityIngredients = (user) => {
+    let yesIngredients = user.noSensitivity.map((item) =>
       item.ingredients.toLowerCase()
     );
     const notSensitiveToArray = yesIngredients.toString().split(",");
-
-    let noIngredients = res.data.yes_sensitivity.map((item) =>
+    let noIngredients = user.yesSensitivity.map((item) =>
       item.ingredients.toLowerCase()
     );
     const sensitiveToArray = noIngredients.toString().split(",");
-
     const ingredientSensitivity = sensitiveToArray.filter(
       (ingredient) => !notSensitiveToArray.includes(ingredient)
     );
@@ -81,12 +80,12 @@ export default class HomePage extends Component {
 
   //update ingredient list once a product has been added to the no_sensitivitie list or yes_sensitivity list
   upDateNotSesitiveTo = (res) => {
-    let yesIngredients = res.data.no_sensitivity.map((item) =>
+    let yesIngredients = this.state.noSensitivity.map((item) =>
       item.ingredients.toLowerCase()
     );
     const notSensitiveToArray = yesIngredients.toString().split(",");
 
-    let noIngredients = res.data.yes_sensitivity.map((item) =>
+    let noIngredients = this.state.yesSensitivity.map((item) =>
       item.ingredients.toLowerCase()
     );
     const sensitiveToArray = noIngredients.toString().split(",");
@@ -100,26 +99,28 @@ export default class HomePage extends Component {
     });
   };
 
-  //User adds products to their yes_sensitive
+  //User adds products to their yesSensitive list
   addProductSensitivity = (product) => {
-    // const userID = this.props.match.params.id;
     this.setState({ item: product });
     console.log("I'm sensitive to this product:", product);
-    addSensitiveToProduct(this.state.userID, product)
+    addSensitiveToProduct(this.state.username, product)
       .then((res) => {
+        //add the products selected and send the ingredients to upDateNotSensitiveTo
         let addProduct = this.state.yesSensitivity;
 
         if (
           !this.state.yesSensitivity.find(
             (product) => product.id === res.data.id
           )
-        )
+        ) {
           addProduct.push(res.data);
+        } else {
+          return;
+        }
 
         console.log(addProduct);
         this.setState({ yesSensitivity: addProduct });
-        //test
-        this.upDateNotSesitiveTo(res);
+        this.upDateNotSesitiveTo();
       })
       .catch((error) => {
         console.log("product did not add", error);
@@ -133,7 +134,7 @@ export default class HomePage extends Component {
     //TODO delete the item and console
     this.setState({ item: product });
     console.log("I'm not sensitive to this product:", product);
-    addNotSensitiveProduct(this.state.userID, product)
+    addNotSensitiveProduct(this.state.username, product)
       .then((res) => {
         console.log(res.data);
         let addProduct = this.state.noSensitivity;
@@ -142,13 +143,16 @@ export default class HomePage extends Component {
           !this.state.noSensitivity.find(
             (product) => product.id === res.data.id
           )
-        )
+        ) {
           addProduct.push(res.data);
+        } else {
+          return;
+        }
 
         console.log(addProduct);
         this.setState({ noSensitivity: addProduct });
-        //test
-        this.upDateNotSesitiveTo(res);
+
+        this.upDateNotSesitiveTo();
       })
       .catch((error) => {
         console.log("product did not add", error);
@@ -182,16 +186,16 @@ export default class HomePage extends Component {
   };
 
   render() {
-    console.log("userID", this.state.userID);
+    console.log("username", this.state.username);
     console.log(this.state.products);
     //ingredent list
-    console.log(this.state.sensitiveToIngredients);
+    console.log("sensitive to ingredients", this.state.sensitiveToIngredients);
     // user no_sensitivity list:
-    console.log(this.state.noSensitivity);
+    console.log("not sensitive", this.state.noSensitivity);
     //user yes_sensitivity list:
-    console.log(this.state.yesSensitivity);
+    console.log("yes sensitive", this.state.yesSensitivity);
     //null until user searchs for products without certain ingredients
-    console.log(this.state.displayProducts);
+    console.log("display products", this.state.displayProducts);
 
     return (
       this.state.products && (
