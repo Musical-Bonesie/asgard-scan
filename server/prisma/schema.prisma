@@ -39,10 +39,17 @@ model YesSensitivity {
 //Products that user is not sensitive to
 
 model NoSensitivity {
-  id       Int        @id @default(autoincrement())
-  user     User       @relation(fields: [userId], references: [id])
-  userId   Int
-  products Products[] @relation(references: [id])
+  id          Int        @id @default(autoincrement())
+  brandName   String     @db.VarChar(255)
+  productName String     @db.VarChar(255)
+  ingredients String     @db.VarChar(2000)
+  price       String
+  category    String     @db.VarChar(255)
+  status      String
+  image       String
+  user        User       @relation(fields: [userId], references: [id])
+  userId      Int
+  products    Products[] @relation(references: [id])
 }
 
 //List of all products and the relation to no_sensitivity and yes_sensitivity list for each user

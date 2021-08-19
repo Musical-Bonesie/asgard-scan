@@ -32,9 +32,9 @@ export default class HomePage extends Component {
     //TODO change user Auth so you use the token instead of username to find user
     const username = sessionStorage.getItem("username");
     this.setState({ token: sessionStorage.getItem("token") });
-
     getProducts()
       .then((res) => {
+        console.log(res.data);
         this.setState({
           products: res.data,
         });
@@ -194,10 +194,10 @@ export default class HomePage extends Component {
     console.log(this.state.displayProducts);
 
     return (
-      this.state.products &&
-      // TODO this.state.sensitiveToIngredients &&
-      this.state.noSensitivity &&
-      this.state.yesSensitivity && (
+      this.state.products && (
+        // TODOthis.state.sensitiveToIngredients &&
+        // TODO add this back this.state.noSensitivity &&
+        // TODO add this back this.state.yesSensitivity &&
         <>
           <IngredientList
             sensitiveToIngredients={this.state.sensitiveToIngredients}
