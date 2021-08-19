@@ -1,10 +1,9 @@
 const usersModel = require("../models/usersModel");
 const uuid = require("uuid");
 const fs = require("fs");
-
 //for Prisma
 const { PrismaClient } = require("@prisma/client");
-const { user } = new PrismaClient();
+const { user, noSensitivity } = new PrismaClient();
 //GET user info
 async function getUsers(req, res) {
   // const users = usersModel.getUser();
@@ -42,6 +41,60 @@ function addNoSensitivity(req, res) {
   //TODO try this usersModel.setUser(users);
   res.status(201).json(req.body);
 }
+/////test///
+async function addNotSensitiveTo(req, res) {
+  console.log(req.body);
+  const {
+    id,
+    brandName,
+    productName,
+    ingredients,
+    image,
+    userId,
+    price,
+    category,
+    status,
+  } = req.body;
+
+  const userExists = await user.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+  if (!userExists) {
+    return res.status(400).json({
+      msg: "user not found",
+    });
+  }
+  console.log(userExists);
+
+  const addProduct = await noSensitivity.create({
+    data: {
+      // id: req.body.id,
+      brandName,
+      productName,
+      ingredients,
+      image,
+      price,
+      category,
+      status,
+      user: {
+        connect: {
+          id: userId,
+        },
+      },
+      products: {
+        connect: {
+          id: id,
+        },
+      },
+      // userId: req.body.userId,
+    },
+  });
+  console.log(addProduct);
+  res.json(addProduct);
+}
+////test///
 
 //user can add products they ARE sensitive to:
 function addSensitiveTo(req, res) {
@@ -58,4 +111,10 @@ function addSensitiveTo(req, res) {
   res.status(201).json(req.body);
 }
 
-module.exports = { getUsers, getSingleUser, addNoSensitivity, addSensitiveTo };
+module.exports = {
+  getUsers,
+  getSingleUser,
+  addNoSensitivity,
+  addSensitiveTo,
+  addNotSensitiveTo,
+};
