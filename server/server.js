@@ -21,19 +21,21 @@ app.use("/users", usersRoutes);
 
 ////User Login
 //delete lines 27 ad I think 30
-const users = {};
-app.post("/login", (req, res) => {
-  const { username, password } = req.body;
-  const user = users[username];
-  const token = jwt.sign({ user: username }, "Nonsesense");
-  //checking to  make sure password matches user. If it doesn't we return status of 401
-  if (user && user.password === password) {
-    // Create a JWT token for the user, and add their name to
-    // the token. Send the token back to the client.
-  }
-  res.status(201).json(token);
-});
+// const users = {};
+// app.post("/login", async (req, res) => {
+//   const { username, password } = req.body;
+//   const user = users[username];
+//   const token = jwt.sign({ user: username }, "Nonsesense");
+//   //checking to  make sure password matches user. If it doesn't we return status of 401
+//   if (user && user.password === password) {
+//     // Create a JWT token for the user, and add their name to
+//     // the token. Send the token back to the client.
+//   }
+//   res.status(201).json(token);
+// });
+////////Test below////
 
+////Test above////
 //PORT Listening on..
 app.listen(PORT, () => {
   console.log(`Server is now running on port ${PORT}`);
