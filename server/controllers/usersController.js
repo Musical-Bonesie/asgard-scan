@@ -1,6 +1,11 @@
 const usersModel = require("../models/usersModel");
-const uuid = require("uuid");
-const fs = require("fs");
+
+//User info validation, token creating and password encryption:
+const { check, validationResult } = require("express-validator");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
+///auth file -- might not be using:
+const authorize = require("../middleware/authorize");
 //for Prisma
 const { PrismaClient } = require("@prisma/client");
 const { user, noSensitivity, yesSensitivity, products } = new PrismaClient();
@@ -137,9 +142,85 @@ async function addSensitiveTo(req, res) {
     });
   }
 }
+////// Login User//////
+async function userLogin(req, res) {
+  const { username, password } = req.body;
+
+  const currentUser = await user.findUnique({
+    where: {
+      username,
+    },
+  });
+
+  // const accessToken = await jwt.signAccessToken(currentUser);
+  const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+    expiresIn: 3600000,
+  });
+  if (!currentUser) {
+    res.status(400).json({ msg: "Invalid Credentials" });
+  }
+  //comparing the hased password to the req.password
+  const isMatch = bcrypt.compareSync(password, currentUser.password);
+  if (!isMatch) {
+    res.status(400).json({ error: "Invalid Credentials" });
+  }
+
+  res.status(200).json(token);
+}
+
+////Create a new user -- /signup /////
+async function createNewUser(req, res) {
+  const { username, password, firstName, lastName, email } = req.body;
+  const errors = validationResult(req);
+
+  //if errors are empty that's good, it means the user gave real password and email. If it's not empty send back status 400 with errors array.
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      errors: errors.array(),
+    });
+  }
+
+  // TODO figure our how to password protect bcrypt.hash(password, 8).then(hasedPassword);
+  const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+    expiresIn: 3600000,
+  });
+  //take the user password, add salt/8 random charaters to it and encrypt it.
+  const hashedPassword = bcrypt.hashSync(password, 8);
+  //Check database if the user already exists
+  const userExists = await user.findUnique({
+    where: { username },
+    select: {
+      username: true,
+      password: true,
+    },
+  });
+  if (userExists) {
+    return res.status(400).json({
+      msg: "user already exists",
+    });
+  }
+  // Create a new user
+  const newUser = await user.create({
+    data: {
+      username: username,
+      password: hashedPassword,
+      token: token,
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+    },
+  });
+  //TODO do i need to add await user.save(); ?
+  res.status(201).json({ msg: "Welcome to the database!" });
+}
+
+//////
+
 module.exports = {
   getUsers,
   getSingleUser,
   addSensitiveTo,
   addNotSensitiveTo,
+  createNewUser,
+  userLogin,
 };
