@@ -105,10 +105,12 @@ export default class HomePage extends Component {
     console.log("I'm sensitive to this product:", product);
     addSensitiveToProduct(this.state.username, product)
       .then((res) => {
+        console.log(res.status);
         //add the products selected and send the ingredients to upDateNotSensitiveTo
         let addProduct = this.state.yesSensitivity;
-
-        if (
+        if (res.status !== 200) {
+          return;
+        } else if (
           !this.state.yesSensitivity.find(
             (product) => product.id === res.data.id
           )
@@ -136,10 +138,10 @@ export default class HomePage extends Component {
     console.log("I'm not sensitive to this product:", product);
     addNotSensitiveProduct(this.state.username, product)
       .then((res) => {
-        console.log(res.data);
         let addProduct = this.state.noSensitivity;
-
-        if (
+        if (res.status !== 200) {
+          return;
+        } else if (
           !this.state.noSensitivity.find(
             (product) => product.id === res.data.id
           )
@@ -187,15 +189,15 @@ export default class HomePage extends Component {
 
   render() {
     console.log("username", this.state.username);
-    console.log(this.state.products);
+    // console.log(this.state.products);
     //ingredent list
-    console.log("sensitive to ingredients", this.state.sensitiveToIngredients);
+    // console.log("sensitive to ingredients", this.state.sensitiveToIngredients);
     // user no_sensitivity list:
     console.log("not sensitive", this.state.noSensitivity);
     //user yes_sensitivity list:
     console.log("yes sensitive", this.state.yesSensitivity);
     //null until user searchs for products without certain ingredients
-    console.log("display products", this.state.displayProducts);
+    // console.log("display products", this.state.displayProducts);
 
     return (
       this.state.products && (

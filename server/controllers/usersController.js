@@ -52,12 +52,13 @@ async function addNotSensitiveTo(req, res) {
     },
   });
   if (!userExists) {
-    return res.status(400).json({
+    return res.status(404).json({
       msg: "user not found",
     });
   }
   const productAlreadyExists = await noSensitivity.findFirst({
     where: {
+      userId: userExists.id,
       products: {
         some: { id: id },
       },
@@ -84,9 +85,9 @@ async function addNotSensitiveTo(req, res) {
         },
       },
     });
-    res.json(addProduct);
+    res.status(200).json(addProduct);
   } else {
-    return res.json({
+    return res.status(202).json({
       msg: "product already exsits on this list",
     });
   }
@@ -102,7 +103,7 @@ async function addSensitiveTo(req, res) {
     },
   });
   if (!userExists) {
-    return res.status(400).json({
+    return res.status(404).json({
       msg: "user not found",
     });
   }
@@ -110,6 +111,7 @@ async function addSensitiveTo(req, res) {
   //
   const productAlreadyExists = await yesSensitivity.findFirst({
     where: {
+      userId: userExists.id,
       products: {
         some: { id: id },
       },
@@ -135,9 +137,9 @@ async function addSensitiveTo(req, res) {
         },
       },
     });
-    res.status(201).json(addProduct);
+    res.status(200).json(addProduct);
   } else {
-    return res.json({
+    return res.status(202).json({
       msg: "product already exsits on this list",
     });
   }
