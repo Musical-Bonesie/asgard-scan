@@ -130,7 +130,6 @@ async function addSensitiveTo(req, res) {
         },
       },
     });
-    //TODO try adding addProduct as a second param .json(returnProduct, addProduct);
     res.status(201).json(addProduct);
   } else {
     return res.json({

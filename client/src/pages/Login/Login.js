@@ -21,7 +21,7 @@ export default class Login extends Component {
   handleSubmit = (event) => {
     event.preventDefault();
     axios
-      .post("/login", this.state.formData)
+      .post("/users/login", this.state.formData)
       .then((res) => {
         sessionStorage.setItem("token", res.data);
         const addUsername = sessionStorage.setItem(
