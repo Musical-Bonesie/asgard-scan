@@ -10,6 +10,7 @@ const authorize = require("../middleware/authorize"); // middleware to check the
 //TODO delete line 9 and 10 and make sure it's inside the userController
 const { PrismaClient } = require("@prisma/client");
 const { user } = new PrismaClient();
+const { check, validationResult } = require("express-validator");
 
 ///GET all users from DB
 router.get("/", usersController.getUsers);
@@ -20,12 +21,13 @@ router.get("/:username", usersController.getSingleUser);
 //POST Add a user remeber to add userAuth //TODO change this to add more user info
 router.post("/login", async (req, res) => {
   console.log(req.body);
-  const { username } = req.body;
+  const { username, password } = req.body;
   const token = jwt.sign({ user: username }, "Nonsesense");
   // if (username == null) {
   //   res.status(500).send("username undefined");
   // } else {
   //check to see if user already exsits
+  const isMatch = bcrypt.compareSync(password);
   const userExists = await user.findUnique({
     where: { username },
     select: {
@@ -52,39 +54,62 @@ router.post("/login", async (req, res) => {
   res.json(token);
 });
 ////////test above that isn't finished for user auth//////
-router.post("/signup", async (req, res) => {
-  const { username, password, firstName, lastName, email } = req.body;
-  // TODO figure our how to password protect bcrypt.hash(password, 8).then(hasedPassword);
-  const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-    expiresIn: "24",
-  });
+router.post(
+  "/signup",
+  [
+    check("email", "Please provide a valid email").isEmail(),
+    check(
+      "password",
+      "Please create a password with more than 5 characters"
+    ).isLength({
+      min: 6,
+    }),
+  ],
+  async (req, res) => {
+    const { username, password, firstName, lastName, email } = req.body;
+    const errors = validationResult(req);
 
-  const userExists = await user.findUnique({
-    where: { username },
-    select: {
-      username: true,
-      password: true,
-    },
-  });
-  if (userExists) {
-    return res.status(400).json({
-      msg: "user already exists",
+    //if errors are empty that's good, it means the user gave real password and email. If it's not empty send back status 400 with errors array.
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        errors: errors.array(),
+      });
+    }
+
+    // TODO figure our how to password protect bcrypt.hash(password, 8).then(hasedPassword);
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "24h",
     });
+
+    const bcryptPassword = bcrypt.hashSync(password, 8);
+    //Check database if the user already exists
+    const userExists = await user.findUnique({
+      where: { username },
+      select: {
+        username: true,
+        password: true,
+      },
+    });
+    if (userExists) {
+      return res.status(400).json({
+        msg: "user already exists",
+      });
+    }
+    // Create a new user
+    const newUser = await user.create({
+      data: {
+        username: username,
+        password: bcryptPassword,
+        token: token,
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+      },
+    });
+    res.status(201).json({ msg: "Welcome to the database!" });
   }
-  // Create a new user
-  const newUser = await user.create({
-    data: {
-      username: username,
-      password: password,
-      token: token,
-      firstName: firstName,
-      lastName: lastName,
-      email: email,
-    },
-  });
-  res.status(201).send.json(newUser);
-});
-/////TEST above user sign up /////
+);
+/////TODO works but need to add password protections TEST above user sign up /////
 
 //PATCH
 //user adds a product to noSensitive list in DB that they are NOT sensitive to:
