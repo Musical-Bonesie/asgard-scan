@@ -213,7 +213,7 @@ async function createNewUser(req, res) {
     },
   });
   //TODO do i need to add await user.save(); ?
-  res.status(201).json({ msg: "Welcome to the database!" });
+  res.status(201).json(token);
 }
 
 //////
