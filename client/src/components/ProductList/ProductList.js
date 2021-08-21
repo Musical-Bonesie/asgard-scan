@@ -37,7 +37,11 @@ export default class ProductList extends Component {
                     to={`/products/${item.id}`}
                   >
                     {" "}
-                    <img src={`${PORT}${item.image}`} alt={item.productName} />
+                    <img
+                      className="product-list__image"
+                      src={`${PORT}${item.image}`}
+                      alt={item.productName}
+                    />
                     <h4 className="product-list__data">{item.productName}</h4>
                     <p className="product-list__label">{item.brandName}</p>
                   </Link>

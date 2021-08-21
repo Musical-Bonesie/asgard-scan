@@ -30,6 +30,9 @@
     color: $primary-grey;
     font-size: 1rem;
   }
+  &__image {
+    width: 50%;
+  }
   &__label {
     color: $primary-dark;
     font-size: 0.75rem;
