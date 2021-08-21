@@ -1,6 +1,5 @@
 import React, { Component } from "react";
-import axios from "axios";
-import HomePage from "../HomePage/index";
+import { loginUser } from "../../utils/dataUtils";
 import asgard_logo from "../../assets/logo/instagram_profile_logo_01.png.jpg";
 import button from "../../assets/logo/button.svg";
 import "./Login.scss";
@@ -8,20 +7,17 @@ import "./Login.scss";
 export default class Login extends Component {
   state = {
     formData: null,
-    token: null,
-    username: null,
   };
   handleChange = (e) => {
     this.setState({
       formData: { ...this.state.formData, [e.target.name]: e.target.value },
     });
   };
-  //TODO onSubmit makes a post req --> redirects to home.
-  //add the functionality once DB is created.
+
   handleSubmit = (event) => {
     event.preventDefault();
-    axios
-      .post("/users/login", this.state.formData)
+
+    loginUser(this.state.formData)
       .then((res) => {
         sessionStorage.setItem("token", res.data);
         const addUsername = sessionStorage.setItem(
@@ -29,9 +25,8 @@ export default class Login extends Component {
           event.target.username.value
         );
         this.props.history.push("/asgardscan");
-        this.setState({ username: addUsername });
       })
-      .catch((error) => alert(error));
+      .catch((error) => alert("Invalid Credentials", error));
   };
   componentWillUnmount() {
     // fix Warning: Can't perform a React state update on an unmounted component
@@ -39,7 +34,7 @@ export default class Login extends Component {
       return;
     };
   }
-  //Once sign-up button is clicked, it takes the user to sign-up page
+  //Once sign up button is clicked, it takes the user to sign-up page
   showSignUp = () => {
     this.props.history.push("/signup");
   };
