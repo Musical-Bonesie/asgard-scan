@@ -25,6 +25,7 @@ export default class HomePage extends Component {
     sensitiveToIngredients: null,
     item: null,
     ingredientSearch: [],
+    isActive: false,
   };
 
   componentDidMount() {
@@ -101,7 +102,8 @@ export default class HomePage extends Component {
 
   //User adds products to their yesSensitive list
   addProductSensitivity = (product) => {
-    this.setState({ item: product });
+    this.setState({ item: product, isActive: !this.state.isActive });
+
     console.log("I'm sensitive to this product:", product);
     addSensitiveToProduct(this.state.username, product)
       .then((res) => {
@@ -132,9 +134,8 @@ export default class HomePage extends Component {
 
   //Add product that user is NOT sensitive to and it compares ingredient list to products user IS sensitive to
   addProductNoSensitivity = (product) => {
-    // const userID = this.props.match.params.id;
-    //TODO delete the item and console
-    this.setState({ item: product });
+    //TODO fix this: Already created logic to remove button but it removes all buttons not just the product that has been added
+    this.setState({ item: product, isActive: !this.state.isActive });
     console.log("I'm not sensitive to this product:", product);
     addNotSensitiveProduct(this.state.username, product)
       .then((res) => {
@@ -217,7 +218,8 @@ export default class HomePage extends Component {
               <label className="main__copy">
                 {" "}
                 Type in the ingredient names that you're sensitive to seperate
-                by a comma to find out which products don't have them!
+                by a comma and click on <em>see more</em> to find out which
+                products don't have them!
                 <input
                   className="main__search--input"
                   type="text"
@@ -225,6 +227,13 @@ export default class HomePage extends Component {
                   onChange={this.handleOnChange}
                 />
               </label>
+              <h2 className="main__heading">DIVCOVER PRODUCTS</h2>
+              <p className="main__copy">
+                We've curated some products that don't contain any of the
+                ingredients you are sensitive to!
+              </p>
+              {/* //TODO change to display products  */}
+              <ProductList displayProducts={this.state.displayProducts} />
               <h2 className="main__heading">AM I SENSITIVE?</h2>
 
               <p className="main__copy">
@@ -233,24 +242,26 @@ export default class HomePage extends Component {
               <NoSensitivity
                 products={this.state.products}
                 addProductNoSensitivity={this.addProductNoSensitivity}
+                isActive={this.state.isActive}
               />
 
               <p className="main__copy">
                 {" "}
-                Add products that you've had a negative reaction to
+                Add products that you've had a negative reaction to below
               </p>
               <YesSensitivity
                 addProductSensitivity={this.addProductSensitivity}
+                isActive={this.state.isActive}
                 products={this.state.products}
               />
             </div>
-            <h2 className="main__heading">DIVCOVER PRODUCTS</h2>
+            {/* <h2 className="main__heading">DIVCOVER PRODUCTS</h2>
             <p className="main__copy">
               We've curated some products that don't contain any of the
               ingredients you are sensitive to!
             </p>
             {/* //TODO change to display products  */}
-            <ProductList displayProducts={this.state.displayProducts} />
+            {/* <ProductList displayProducts={this.state.displayProducts} />  */}
             <button
               className="main__btn-grad"
               type="button"

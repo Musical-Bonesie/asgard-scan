@@ -4,6 +4,7 @@
 .cardNotSensitive {
   display: flex;
   flex-wrap: wrap;
+  padding: 1rem 0;
 
   &__content {
     display: flex;
@@ -21,7 +22,13 @@
   &__button {
     width: 3rem;
     z-index: 1;
+    // &--added {
+    //   width: 3rem;
+    //   //changed back to display contents because I need to fix this
+    //   display: none;
+    // }
   }
+
   &__body {
     flex-basis: 100%;
   }

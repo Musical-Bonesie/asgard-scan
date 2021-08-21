@@ -4,7 +4,11 @@ import { PORT } from "../../utils/dataUtils";
 
 import "./NoSensitivity.scss";
 
-export default function NoSensitivity({ addProductNoSensitivity, products }) {
+export default function NoSensitivity({
+  addProductNoSensitivity,
+  products,
+  isActive,
+}) {
   return (
     <div className="cardNotSensitive">
       {products.map((product) => {
@@ -19,6 +23,11 @@ export default function NoSensitivity({ addProductNoSensitivity, products }) {
             <img
               onClick={() => addProductNoSensitivity(product)}
               className="cardNotSensitive__button"
+              //TODO removed this until I fix the issues {
+              //   isActive
+              //     ? "cardNotSensitive__button"
+              //     : "cardNotSensitive__button--added"
+              // }
               src={add}
               alt="add a yes product"
             />
