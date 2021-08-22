@@ -42,4 +42,7 @@ router.patch("/:username", usersController.addNotSensitiveTo);
 //user adds a product to yesSensitive DB list:
 router.patch("/sensitive/:username", usersController.addSensitiveTo);
 
+///DELETE user can delete a product from their yesSensitive list.
+router.delete("/sensitive/:username", usersController.deleteProductSensitiveTo);
+
 module.exports = router;

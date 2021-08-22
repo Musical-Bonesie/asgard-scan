@@ -144,6 +144,49 @@ async function addSensitiveTo(req, res) {
     });
   }
 }
+/////////////////////below////////////
+////Delete a product from the yesSensitive list
+async function deleteProductSensitiveTo(req, res) {
+  const { id, brandName, productName, ingredients, image } = req.body;
+  const { username } = req.params;
+  const userExists = await user.findUnique({
+    where: {
+      username: username,
+    },
+    include: {
+      yesSensitivity: true,
+    },
+  });
+  if (!userExists) {
+    return res.status(404).json({
+      msg: "user not found",
+    });
+  }
+
+  //
+  const productAlreadyExists = await yesSensitivity.findMany({
+    where: {
+      products: { every: { id: id } },
+    },
+  });
+  console.log(productAlreadyExists);
+
+  // if (productAlreadyExists) {
+  const deleteProduct = await yesSensitivity.delete({
+    where: {
+      id: id,
+    },
+  });
+  console.log(deleteProduct);
+  res.status(200).json(deleteProduct);
+  // } else {
+  return res.status(202).json({
+    msg: "product does not exsit on this list",
+  });
+  // }
+}
+
+///delete test above///
 ////// Login User//////
 async function userLogin(req, res) {
   const { username, password } = req.body;
@@ -222,6 +265,7 @@ module.exports = {
   getUsers,
   getSingleUser,
   addSensitiveTo,
+  deleteProductSensitiveTo,
   addNotSensitiveTo,
   createNewUser,
   userLogin,
