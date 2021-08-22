@@ -144,8 +144,9 @@ async function addSensitiveTo(req, res) {
     });
   }
 }
-/////////////////////below////////////
-////Delete a product from the yesSensitive list
+
+////DELETE user can delete a product from the yesSensitive list:
+
 async function deleteProductSensitiveTo(req, res) {
   const { id } = req.body;
   const { username } = req.params;
@@ -185,7 +186,6 @@ async function deleteProductSensitiveTo(req, res) {
   }
 }
 
-///delete test above///
 ////// Login User//////
 async function userLogin(req, res) {
   const { username, password } = req.body;
