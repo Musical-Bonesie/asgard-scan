@@ -4,13 +4,18 @@ import YesSensitivity from "../../components/YesSensitivity/YesSensitivity";
 import ProductList from "../../components/ProductList/ProductList";
 import IngredientList from "../../components/IngredientList/IngredientList";
 import Footer from "../../components/Footer/index";
+import Alert from "../../assets/logo/alert-icon.svg";
 import {
   getProducts,
   getSingleUser,
   addNotSensitiveProduct,
   addSensitiveToProduct,
+  deleteProductSensitiveTo,
 } from "../../utils/dataUtils";
 import "./HomePage.scss";
+import Modal from "react-modal";
+
+Modal.setAppElement("#root");
 
 export default class HomePage extends Component {
   state = {
@@ -26,6 +31,8 @@ export default class HomePage extends Component {
     item: null,
     ingredientSearch: [],
     isActive: false,
+    deletedItem: [],
+    modal: false,
   };
 
   componentDidMount() {
@@ -56,8 +63,39 @@ export default class HomePage extends Component {
       });
   }
 
-  //test above//
+  //test Modal below//
+  // Functions for closing the modal.
+  closeModal = () => this.setState({ modal: false });
+  //Open Modal
+  toggleModal = (item) => {
+    this.setState({
+      modal: !this.state.modal,
+      deletedItem: item,
+    });
+  };
+  deleteItemAxios = () => {
+    deleteProductSensitiveTo(this.state.username, this.state.deletedItem)
+      .then((res) => {
+        console.log(res.data.status);
+        //TODO add logic to only remove the deleted Item from yesSensitivity list
+        // if(res.status == 200){
 
+        // this.setState({
+        //   yesSensitivity: response.data,
+
+        // });
+        // }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+  // 2 in 1 function to call the 2 functions required to close the modal/delete an item.
+
+  deleteItemFunc = () => {
+    this.closeModal();
+    this.deleteItemAxios();
+  };
   // //Find ingredients that the user is senstive to by comparing their no_sensitivity list to yes_sensitivity list
   // and return ingredients not in the no_sensitivity list.
   getSensitivityIngredients = (user) => {
@@ -251,15 +289,55 @@ export default class HomePage extends Component {
                 addProductSensitivity={this.addProductSensitivity}
                 isActive={this.state.isActive}
                 products={this.state.products}
+                toggleModal={this.toggleModal}
               />
             </div>
-            {/* <h2 className="main__heading">DIVCOVER PRODUCTS</h2>
-            <p className="main__copy">
-              We've curated some products that don't contain any of the
-              ingredients you are sensitive to!
-            </p>
-            {/* //TODO change to display products  */}
-            {/* <ProductList displayProducts={this.state.displayProducts} />  */}
+            {/* ///Testing delete function with Modal below */}
+            <Modal
+              isOpen={this.state.modal === true}
+              className="modal__modal"
+              overlayClassName="modal__overlay"
+              transparent={true}
+            >
+              <div className="modal__modal-top">
+                <h1 className="modal__modal-item">
+                  Delete {this.state.deletedItem.productName} from your
+                  sensitive list?
+                </h1>
+                <img
+                  onClick={this.closeModal}
+                  className="modal__modal-close"
+                  src={Alert}
+                  alt="Close Icon"
+                />
+              </div>
+              <div>
+                <p className="modal__modal-description">
+                  Please confirm that you'd like to delete{" "}
+                  {this.state.deletedItem.productName} from your Sensitive To
+                  list.
+                </p>
+                <img
+                  className="modal__modal-image"
+                  src={this.state.deletedItem.image}
+                />
+              </div>
+              <div className="modal__modal-buttons">
+                <button
+                  onClick={this.closeModal}
+                  className="modal__modal-cancel"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={this.deleteItemFunc}
+                  className="modal__modal-confirm"
+                >
+                  Delete
+                </button>
+              </div>
+            </Modal>
+            {/* Testing Delete Function aboce with Modal */}
             <button
               className="main__btn-grad"
               type="button"

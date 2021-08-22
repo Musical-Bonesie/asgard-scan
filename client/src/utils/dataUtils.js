@@ -13,11 +13,13 @@ export const loginUser = (userData) => axios.post("/users/login", userData);
 export const signUpNewUser = (userData) =>
   axios.post("/users/signup", userData);
 
-//addYesProducts adds products that user is NOT sensitive and id is usersID
+//User adds products they are NOT sensitive:
 export const addNotSensitiveProduct = (username, product) =>
   axios.patch(`/users/${username}`, product);
-
+//User Adds products they are sensitive to:
 export const addSensitiveToProduct = (username, product) =>
   axios.patch(`/users/sensitive/${username}`, product);
-//TODO make sure to test that this API call works
-//changed addSensitiveToProduct path since adding DB
+
+//User can delete a product from their YesSensitivity List:
+export const deleteProductSensitiveTo = (username, product) =>
+  axios.delete(`/users/sensitive/${username}`, product);
