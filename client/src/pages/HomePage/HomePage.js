@@ -35,7 +35,6 @@ export default class HomePage extends Component {
     this.setState({ token: sessionStorage.getItem("token") });
     getProducts()
       .then((res) => {
-        console.log(res.data);
         this.setState({
           products: res.data,
         });
@@ -107,7 +106,6 @@ export default class HomePage extends Component {
     console.log("I'm sensitive to this product:", product);
     addSensitiveToProduct(this.state.username, product)
       .then((res) => {
-        console.log(res.status);
         //add the products selected and send the ingredients to upDateNotSensitiveTo
         let addProduct = this.state.yesSensitivity;
         if (res.status !== 200) {

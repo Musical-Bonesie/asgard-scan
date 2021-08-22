@@ -147,7 +147,7 @@ async function addSensitiveTo(req, res) {
 /////////////////////below////////////
 ////Delete a product from the yesSensitive list
 async function deleteProductSensitiveTo(req, res) {
-  const { id, brandName, productName, ingredients, image } = req.body;
+  const { id } = req.body;
   const { username } = req.params;
   const userExists = await user.findUnique({
     where: {
@@ -169,9 +169,10 @@ async function deleteProductSensitiveTo(req, res) {
       products: { every: { id: id } },
     },
   });
+  //TODO why is this an empty array? when it was working before/last night?
   console.log(productAlreadyExists);
 
-  if (productAlreadyExists) {
+  try {
     const deleteProduct = await yesSensitivity.delete({
       where: {
         id: id,
@@ -179,10 +180,8 @@ async function deleteProductSensitiveTo(req, res) {
     });
     console.log(deleteProduct);
     res.status(202).json(deleteProduct);
-  } else {
-    return res.status(204).json({
-      msg: "product does not exsit on this list",
-    });
+  } catch (error) {
+    res.status(200).json({ msg: "product is not on this list" });
   }
 }
 

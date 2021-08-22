@@ -1,70 +1,29 @@
-# Getting Started with Create React App
+# Asagrd-Scan: My Capstone Project for BrainStation
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A mobile app (view this app at width: 375px) that helps users with sensitive skin narrow down which ingredients might be causing irritation.
 
-## Available Scripts
+# Features
 
-In the project directory, you can run:
+- Sign-Up to create an account that's saved in the database to gain access to the Home Page/Asgard Scan.
 
-### `npm start`
+- Login: Using user Authentication to only allow valid users to gain access to the Home Page/Asgard Scan.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- User can add products that they know they aren't sensitive to and add products that they have had a negative reaction to. Ingredients (from the products the user has added) will be compared to the ingredeints from products they have not had sensitivities to and products they have had sensitivity/irritation from. Once the comparision is finished, the potential ingredients causing irritation will be returned and displayed at the top of the page (this may change as I refine the design of the page and add responsiveness across all sreen sizes).
+  The more products the database has to compare for the user the more refined/acurate the suggested ingredients that might be causing sensitivities will be.
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+Note: The products the user adds to their Sensitive to and not Sensitive To lists will be saved in the relational database to their user profile.
 
-### `npm test`
+- User can search for products without specific ingredients by typing ingredients (seperated by a comma ",") into the search bar:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+ex/ water, coconut oil,
 
-### `npm run build`
+Once ingredients have been typed in, a list of products WITHOUT those ingredients will be displayed.
+Currently a section that says "See More" will appear once ingredients have been typed into the search bar and the user can click on "See More" to view all suggested products without the ingredients they searched.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+# Future Features
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- Add responsiveness for all screen sizes
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- Add a user profile where they can edit their profile and product lists
+- Users can manually add any product to their lists to save in the database.
+- Add a scan feature so users can scan products with their mobile phone to add the ingredients, brand name, product name etc.. to their profile and database.
