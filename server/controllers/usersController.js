@@ -171,19 +171,19 @@ async function deleteProductSensitiveTo(req, res) {
   });
   console.log(productAlreadyExists);
 
-  // if (productAlreadyExists) {
-  const deleteProduct = await yesSensitivity.delete({
-    where: {
-      id: id,
-    },
-  });
-  console.log(deleteProduct);
-  res.status(200).json(deleteProduct);
-  // } else {
-  return res.status(202).json({
-    msg: "product does not exsit on this list",
-  });
-  // }
+  if (productAlreadyExists) {
+    const deleteProduct = await yesSensitivity.delete({
+      where: {
+        id: id,
+      },
+    });
+    console.log(deleteProduct);
+    res.status(202).json(deleteProduct);
+  } else {
+    return res.status(204).json({
+      msg: "product does not exsit on this list",
+    });
+  }
 }
 
 ///delete test above///
@@ -225,7 +225,6 @@ async function createNewUser(req, res) {
     });
   }
 
-  // TODO figure our how to password protect bcrypt.hash(password, 8).then(hasedPassword);
   const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
     expiresIn: 3600000,
   });

@@ -6,6 +6,7 @@ import Login from "./pages/Login/index";
 import SignUp from "./pages/SignUp";
 import NoSensitivity from "./components/NoSensitivity/NoSensitivity";
 import YesSensitivity from "./components/YesSensitivity/YesSensitivity";
+import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 
 function App() {
   /// sessionStorage.
@@ -14,13 +15,12 @@ function App() {
       <BrowserRouter>
         <Header />
         <Switch>
-          <Route path="/" exact component={HomePage} />
-          <Route path="/asgardscan" exact component={HomePage} />
           <Route path="/asgardscan/:userID" exact component={NoSensitivity} />
           <Route path="/asgardscan/:userID" exact component={YesSensitivity} />
           <Route path="/login" exact component={Login} />
           <Route path="/signup" exact component={SignUp} />
-          {/* <ProtectedRoute to="/" exact component={HomePage} /> */}
+          <ProtectedRoute to="/" exact component={HomePage} />
+          <ProtectedRoute to="/asgardscan" exact component={HomePage} />
         </Switch>
       </BrowserRouter>
     </div>
