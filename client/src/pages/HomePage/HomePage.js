@@ -36,7 +36,6 @@ export default class HomePage extends Component {
   };
 
   componentDidMount() {
-    //TODO change user Auth so you use the token instead of username to find user
     const username = sessionStorage.getItem("username");
     console.log(username);
     this.setState({ token: sessionStorage.getItem("token") });
@@ -63,9 +62,9 @@ export default class HomePage extends Component {
       });
   }
 
-  //test Modal below//
-  // Functions for closing the modal.
+  // Function for closing the modal.
   closeModal = () => this.setState({ modal: false });
+
   //Open Modal
   toggleModal = (item) => {
     this.setState({
@@ -73,10 +72,12 @@ export default class HomePage extends Component {
       deletedItem: item,
     });
   };
-  deleteItemAxios = () => {
+  deleteItem = () => {
+    //TODO Why is this returning an empty {} as the req?
+    console.log(this.state.deletedItem);
     deleteProductSensitiveTo(this.state.username, this.state.deletedItem)
       .then((res) => {
-        console.log(res.data.status);
+        console.log(res.data);
         //TODO add logic to only remove the deleted Item from yesSensitivity list
         // if(res.status == 200){
 
@@ -90,12 +91,13 @@ export default class HomePage extends Component {
         console.log(error);
       });
   };
-  // 2 in 1 function to call the 2 functions required to close the modal/delete an item.
+  //close the modal/delete an item.
 
   deleteItemFunc = () => {
     this.closeModal();
-    this.deleteItemAxios();
+    this.deleteItem();
   };
+
   // //Find ingredients that the user is senstive to by comparing their no_sensitivity list to yes_sensitivity list
   // and return ingredients not in the no_sensitivity list.
   getSensitivityIngredients = (user) => {
@@ -217,7 +219,7 @@ export default class HomePage extends Component {
   };
 
   logout = () => {
-    //created sessionStorage to loggin so on log out we remove the item/token: i.e sesstionStorage.removeItem()
+    //Remove the item/token: i.e sesstionStorage.removeItem() once user log out
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("username");
     this.props.history.push("/login");
@@ -225,22 +227,12 @@ export default class HomePage extends Component {
   };
 
   render() {
-    console.log("username", this.state.username);
-    // console.log(this.state.products);
-    //ingredent list
-    // console.log("sensitive to ingredients", this.state.sensitiveToIngredients);
-    // user no_sensitivity list:
-    console.log("not sensitive", this.state.noSensitivity);
-    //user yes_sensitivity list:
-    console.log("yes sensitive", this.state.yesSensitivity);
-    //null until user searchs for products without certain ingredients
-    // console.log("display products", this.state.displayProducts);
+    //TODO delete this once done debugging the delete function/modal
+    // console.log("not sensitive", this.state.noSensitivity);
+    // console.log("yes sensitive", this.state.yesSensitivity);
 
     return (
       this.state.products && (
-        // TODOthis.state.sensitiveToIngredients &&
-        // TODO add this back this.state.noSensitivity &&
-        // TODO add this back this.state.yesSensitivity &&
         <>
           <IngredientList
             sensitiveToIngredients={this.state.sensitiveToIngredients}
@@ -253,9 +245,9 @@ export default class HomePage extends Component {
             <div className="main__search">
               <label className="main__copy">
                 {" "}
-                Type in the ingredient names that you're sensitive to seperate
+                Type in the ingredient names that you're sensitive to seperated
                 by a comma and click on <em>see more</em> to find out which
-                products don't have them!
+                products don't contain them!
                 <input
                   className="main__search--input"
                   type="text"
@@ -292,7 +284,7 @@ export default class HomePage extends Component {
                 toggleModal={this.toggleModal}
               />
             </div>
-            {/* ///Testing delete function with Modal below */}
+            {/* ///TODO Testing delete function with Modal below */}
             <Modal
               isOpen={this.state.modal === true}
               className="modal__modal"
@@ -320,6 +312,7 @@ export default class HomePage extends Component {
                 <img
                   className="modal__modal-image"
                   src={this.state.deletedItem.image}
+                  alt="delete item from your yes sensitivity list"
                 />
               </div>
               <div className="modal__modal-buttons">
@@ -337,7 +330,6 @@ export default class HomePage extends Component {
                 </button>
               </div>
             </Modal>
-            {/* Testing Delete Function aboce with Modal */}
             <button
               className="main__btn-grad"
               type="button"

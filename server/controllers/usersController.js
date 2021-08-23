@@ -163,7 +163,7 @@ async function deleteProductSensitiveTo(req, res) {
       msg: "user not found",
     });
   }
-
+  console.log(req.body);
   //
   const productAlreadyExists = await yesSensitivity.findMany({
     where: {
