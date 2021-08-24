@@ -1,14 +1,16 @@
-# Asagrd-Scan: My Capstone Project for BrainStation
+# Asagrd-Scan
 
 A mobile web app (view this app at width: 375px) that helps users with sensitive skin narrow down which ingredients might be causing irritation.
 
 # Features
 
-- Sign-Up to create an account that's saved in the database to gain access to the Home Page/Asgard Scan.
+- User Auth
 
-- Login: Using user Authentication to only allow valid users to gain access to the Home Page/Asgard Scan.
+* Sign-Up to create an account that's saved in the database to gain access to the Home Page/Asgard Scan.
 
-- User can add products that they know they aren't sensitive to and add products that they have had a negative reaction to. Ingredients (from the products the user has added) will be compared between the products they do not have sensitivities torward and products they have sensitivities/irritations from. Once the comparision is finished, the potential ingredients causing irritation will be returned and displayed at the top of the page (this may change as I refine the design of the page and add responsiveness across all sreen sizes).
+* Login: Using user Authentication to only allow valid users to gain access to the Home Page/Asgard Scan.
+
+* User can add products that they know they aren't sensitive to and add products that they have had a negative reaction to. Ingredients (from the products the user has added) will be compared between the products they do not have sensitivities torward and products they have sensitivities/irritations from. Once the comparision is finished, the potential ingredients causing irritation will be returned and displayed at the top of the page (this may change as I refine the design of the page and add responsiveness across all sreen sizes).
   The more products the database has to compare for the user the more refined/accurate the suggested ingredients that might be causing sensitivities will be.
 
 Note: The products the user adds to their "Sensitive To" and "Not Sensitive To" lists will be saved in the relational database to their user profile.

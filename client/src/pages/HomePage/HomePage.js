@@ -78,14 +78,15 @@ export default class HomePage extends Component {
     deleteProductSensitiveTo(this.state.username, this.state.deletedItem)
       .then((res) => {
         console.log(res.data);
-        //TODO add logic to only remove the deleted Item from yesSensitivity list
-        // if(res.status == 200){
+        // TODO add logic to only remove the deleted Item from yesSensitivity list
+        if (res.status == 200) {
+          console.log("The Response status was 200!");
 
-        // this.setState({
-        //   yesSensitivity: response.data,
+          // this.setState({
+          //   yesSensitivity: response.data,
 
-        // });
-        // }
+          // });
+        }
       })
       .catch((error) => {
         console.log(error);
