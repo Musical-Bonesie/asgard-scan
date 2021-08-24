@@ -31,6 +31,10 @@
     &::placeholder {
       padding: 0.5rem;
     }
+    &:focus {
+      outline: none;
+      background-color: rgb(252, 210, 227);
+    }
   }
   &__label {
     color: white;

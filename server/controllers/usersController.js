@@ -164,6 +164,7 @@ async function deleteProductSensitiveTo(req, res) {
     });
   }
   console.log(req.body);
+
   //
   const productAlreadyExists = await yesSensitivity.findMany({
     where: {

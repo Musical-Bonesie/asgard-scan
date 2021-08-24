@@ -31,6 +31,10 @@
     border-radius: 20px;
     text-indent: 20px;
     border: 1px solid $primary-dark;
+    &:focus {
+      outline: none;
+      border-color: $primary-light;
+    }
   }
 
   &__btn-grad {
