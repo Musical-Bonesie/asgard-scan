@@ -2,6 +2,8 @@
 
 A mobile web app (view this app at width: 375px) that helps users with sensitive skin narrow down which ingredients might be causing irritation.
 
+Login:
+
 # Features
 
 - User Auth
@@ -28,3 +30,33 @@ Currently a section that says "See More" will appear once ingredients have been 
 - Add a user profile where they can edit their profile and product lists
 - User ability to manually add any product to their lists to save in the database.
 - Add a scan feature so users can scan products with their mobile phone to add the ingredients, brand name, product name etc.. to their profile and database.
+
+# Installation and Usage
+
+- Clone the project via this Terminal command
+
+- cd into project folder
+
+- cd into both /client and /server folder and run npm install in each.
+
+- Create a database (this project uses mySQL, Prisma, JavaScript) to connect to this project
+
+* In Terminal, type mysql -u root -p to login as root user.
+* In the mysql console, type: CREATE DATABASE asgardscanisawesome;
+
+- Next install Prisma in the /server:
+
+* npm install prisma --save-dev
+* npx prisma
+
+- In /server go to the .env file, add a value for:
+
+* your JWT_SECRET env variable, choose any value.
+  -Add a port number
+* update the DATABASE_URL with your information:
+  DATABASE_URL="mysql://yourname:randompassword@localhost:5432/mydbname?schema=public"
+
+- In terminal:
+
+* npx prisma migrate dev --name init
+* Now you shuld be able to npm start in /server and /client to get the project up a running.
