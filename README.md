@@ -2,7 +2,7 @@
 
 A mobile web app (view this app at width: 375px) that helps users with sensitive skin narrow down which ingredients might be causing irritation.
 
-[Login](./public/images/login-page.png)
+![Login](/public/images/login-page.png)
 
 # Features
 
