@@ -73,17 +73,23 @@ export default class HomePage extends Component {
     });
   };
   deleteItem = () => {
-    //TODO Why is this returning an empty {} as the req?
-    console.log(this.state.deletedItem);
-    deleteProductSensitiveTo(this.state.username, this.state.deletedItem)
+    getSingleUser(this.state.username)
+      .then((res) => {
+        let deletedProduct = res.data.yesSensitivity.find(
+          (product) =>
+            product.productName === this.state.deletedItem.productName
+        );
+        console.log(deletedProduct);
+        return deleteProductSensitiveTo(this.state.username, deletedProduct);
+      })
       .then((res) => {
         console.log(res.data);
         // TODO add logic to only remove the deleted Item from yesSensitivity list
-        if (res.status == 200) {
+        if (res.status === 200) {
           console.log("The Response status was 200!");
 
           // this.setState({
-          //   yesSensitivity: response.data,
+          //   yesSensitivity: res.data,
 
           // });
         }
@@ -191,7 +197,6 @@ export default class HomePage extends Component {
           return;
         }
 
-        console.log(addProduct);
         this.setState({ noSensitivity: addProduct });
 
         this.upDateNotSesitiveTo();
@@ -228,10 +233,6 @@ export default class HomePage extends Component {
   };
 
   render() {
-    //TODO delete this once done debugging the delete function/modal
-    // console.log("not sensitive", this.state.noSensitivity);
-    // console.log("yes sensitive", this.state.yesSensitivity);
-
     return (
       this.state.products && (
         <>
@@ -256,12 +257,6 @@ export default class HomePage extends Component {
                   onChange={this.handleOnChange}
                 />
               </label>
-              <h2 className="main__heading">DIVCOVER PRODUCTS</h2>
-              <p className="main__copy">
-                We've curated some products that don't contain any of the
-                ingredients you are sensitive to!
-              </p>
-              {/* //TODO change to display products  */}
               <ProductList displayProducts={this.state.displayProducts} />
               <h2 className="main__heading">AM I SENSITIVE?</h2>
 
