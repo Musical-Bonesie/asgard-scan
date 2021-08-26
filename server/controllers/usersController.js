@@ -148,39 +148,42 @@ async function addSensitiveTo(req, res) {
 ////DELETE user can delete a product from the yesSensitive list:
 
 async function deleteProductSensitiveTo(req, res) {
-  console.log(req.body.id);
+  // console.log(req);
 
-  const { id } = req.body;
+  // const { id } = req.body;
   const { username } = req.params;
-  const userExists = await user.findUnique({
-    where: {
-      username: username,
-    },
-    include: {
-      yesSensitivity: true,
-    },
-  });
-  if (!userExists) {
-    return res.status(404).json({
-      msg: "user not found",
-    });
-  }
+  console.log(username);
+  // const userExists = await user.findUnique({
+  //   where: {
+  //     username: username,
+  //   },
+  //   include: {
+  //     yesSensitivity: true,
+  //   },
+  // });
+  // if (!userExists) {
+  //   return res.status(404).json({
+  //     msg: "user not found",
+  //   });
+  // }
 
-  //
-  const productAlreadyExists = await yesSensitivity.findUnique({
-    where: {
-      id: req.body,
-    },
-  });
+  // //
+  // const productAlreadyExists = await yesSensitivity.findFirst({
+  //   where: {
+  //     id: id,
+  //   },
+  // });
   //TODO why is this an empty array? when it was working before/last night?
-  console.log(productAlreadyExists);
+  // console.log(productAlreadyExists);
 
   try {
+    console.log("inside try");
     const deleteProduct = await yesSensitivity.delete({
       where: {
-        id: id,
+        id: username,
       },
     });
+    console.log(`this is ${deleteProduct}`);
     res.status(202).json(deleteProduct);
   } catch (error) {
     res.status(200).json({ msg: "product is not on this list" });

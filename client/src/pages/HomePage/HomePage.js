@@ -73,15 +73,11 @@ export default class HomePage extends Component {
     });
   };
   deleteItem = () => {
-    getSingleUser(this.state.username)
-      .then((res) => {
-        let deletedProduct = res.data.yesSensitivity.find(
-          (product) =>
-            product.productName === this.state.deletedItem.productName
-        );
-        console.log(deletedProduct);
-        return deleteProductSensitiveTo(this.state.username, deletedProduct);
-      })
+    let deletedProduct = this.state.yesSensitivity.find(
+      (product) => product.productName === this.state.deletedItem.productName
+    );
+    console.log(deletedProduct.id);
+    deleteProductSensitiveTo(deletedProduct.id)
       .then((res) => {
         console.log(res.data);
         // TODO add logic to only remove the deleted Item from yesSensitivity list
@@ -178,9 +174,11 @@ export default class HomePage extends Component {
   };
 
   //Add product that user is NOT sensitive to and it compares ingredient list to products user IS sensitive to
-  addProductNoSensitivity = (product) => {
+  addProductNoSensitivity = (e, product) => {
+    e.preventDefault();
+    console.log(e);
     //TODO fix this: Already created logic to remove button but it removes all buttons not just the product that has been added
-    this.setState({ item: product, isActive: !this.state.isActive });
+    // this.setState({ item: product, isActive: !this.state.isActive });
     console.log("I'm not sensitive to this product:", product);
     addNotSensitiveProduct(this.state.username, product)
       .then((res) => {
@@ -204,7 +202,6 @@ export default class HomePage extends Component {
       .catch((error) => {
         console.log("product did not add", error);
       });
-    console.log(this.state.noSensitivity);
   };
   //User types ingredents into the search bar: water, coconut oil, etc...  and returns products that do not contain those ingredients shown in the SEE MORE section
   handleOnChange = (event) => {
@@ -261,7 +258,8 @@ export default class HomePage extends Component {
               <h2 className="main__heading">AM I SENSITIVE?</h2>
 
               <p className="main__copy">
-                Add at lest one product that works for you{" "}
+                Add at least one product that you have used and do NOT have
+                sensitivity towards
               </p>
               <NoSensitivity
                 products={this.state.products}
@@ -280,7 +278,7 @@ export default class HomePage extends Component {
                 toggleModal={this.toggleModal}
               />
             </div>
-            {/* ///TODO Testing delete function with Modal below */}
+            {/* ///TODO Debugging delete function with Modal below */}
             <Modal
               isOpen={this.state.modal === true}
               className="modal__modal"
