@@ -21,5 +21,5 @@ export const addSensitiveToProduct = (username, product) =>
   axios.patch(`/users/sensitive/${username}`, product);
 
 //User can delete a product from their YesSensitivity List:
-export const deleteProductSensitiveTo = (username, product) =>
-  axios.delete(`/users/sensitive/${username}`, product);
+export const deleteProductSensitiveTo = (username) =>
+  axios.delete(`/users/sensitive/${username}`);
