@@ -11,7 +11,6 @@
   &__copy {
     font-size: 1rem;
     color: $primary-grey;
-    padding: 2rem 0 0 0;
     margin: 1rem 0;
   }
 
@@ -24,6 +23,7 @@
   }
   &__search--input {
     background-image: url("../../assets//logo/search.svg");
+    background-position: left;
     background-repeat: no-repeat;
     padding: $padding-increment;
     width: 100%;
@@ -31,6 +31,10 @@
     border-radius: 20px;
     text-indent: 20px;
     border: 1px solid $primary-dark;
+    &:focus {
+      outline: none;
+      border-color: $primary-light;
+    }
   }
 
   &__btn-grad {

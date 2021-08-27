@@ -1,5 +1,4 @@
 const usersModel = require("../models/usersModel");
-
 //User info validation, token creating and password encryption:
 const { check, validationResult } = require("express-validator");
 const jwt = require("jsonwebtoken");
@@ -26,6 +25,9 @@ async function getUsers(req, res) {
 }
 //Get a single user:
 async function getSingleUser(req, res) {
+  // const { id } = req.decoded.id;
+  // console.log(req.decoded.id);
+  ////
   const { username } = req.params;
   const singleUser = await user.findUnique({
     where: {
@@ -148,38 +150,42 @@ async function addSensitiveTo(req, res) {
 ////DELETE user can delete a product from the yesSensitive list:
 
 async function deleteProductSensitiveTo(req, res) {
-  const { id } = req.body;
+  // console.log(req);
+
+  // const { id } = req.body;
   const { username } = req.params;
-  const userExists = await user.findUnique({
-    where: {
-      username: username,
-    },
-    include: {
-      yesSensitivity: true,
-    },
-  });
-  if (!userExists) {
-    return res.status(404).json({
-      msg: "user not found",
-    });
-  }
-  console.log(req.body);
-  //
-  const productAlreadyExists = await yesSensitivity.findMany({
-    where: {
-      products: { every: { id: id } },
-    },
-  });
+  console.log(username);
+  // const userExists = await user.findUnique({
+  //   where: {
+  //     username: username,
+  //   },
+  //   include: {
+  //     yesSensitivity: true,
+  //   },
+  // });
+  // if (!userExists) {
+  //   return res.status(404).json({
+  //     msg: "user not found",
+  //   });
+  // }
+
+  // //
+  // const productAlreadyExists = await yesSensitivity.findFirst({
+  //   where: {
+  //     id: id,
+  //   },
+  // });
   //TODO why is this an empty array? when it was working before/last night?
-  console.log(productAlreadyExists);
+  // console.log(productAlreadyExists);
 
   try {
+    console.log("inside try");
     const deleteProduct = await yesSensitivity.delete({
       where: {
-        id: id,
+        id: username,
       },
     });
-    console.log(deleteProduct);
+    console.log(`this is ${deleteProduct}`);
     res.status(202).json(deleteProduct);
   } catch (error) {
     res.status(200).json({ msg: "product is not on this list" });

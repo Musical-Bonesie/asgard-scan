@@ -9,9 +9,6 @@ export default function YesSensitivity({
   products,
   toggleModal,
 }) {
-  //TODO now the the button works and goes to the handleClick function on HomePage.
-  // add the functionality to get the product added to the correct users yes_sensitivity list in DB
-
   return (
     <div className="cardSensitive">
       {products.map((product) => {

@@ -10,7 +10,7 @@
 }
 
 .product-list {
-  padding: 1rem;
+  padding: 0 1rem;
   &__see-more {
     padding-bottom: 1rem;
     width: 6rem;
@@ -30,11 +30,41 @@
     color: $primary-grey;
     font-size: 1rem;
   }
+  &__copy {
+    padding: 1rem 0;
+  }
   &__image {
     width: 50%;
   }
   &__label {
     color: $primary-dark;
     font-size: 0.75rem;
+  }
+  &__btn-grad {
+    background-image: linear-gradient(
+      to right,
+      $primary-dark 0%,
+      #eb488c 51%,
+      #f2a6c7 100%
+    );
+  }
+  &__btn-grad {
+    margin: 0.5rem 0;
+    padding: 10px 22px;
+    font-size: 0.75rem;
+    text-align: center;
+    transition: 0.5s;
+    background-size: 200% auto;
+    border: none;
+    color: white;
+    box-shadow: 0 0 20px #eee;
+    border-radius: 10px;
+    display: block;
+  }
+
+  &__btn-grad:hover {
+    background-position: right center; /* change the direction of the change here */
+    color: #fff;
+    text-decoration: none;
   }
 }

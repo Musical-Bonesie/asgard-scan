@@ -32,6 +32,10 @@
     &::placeholder {
       text-indent: 5%;
     }
+    &:focus {
+      outline: none;
+      background-color: rgb(252, 210, 227);
+    }
   }
   &__input-bottom {
     display: block;
@@ -42,6 +46,10 @@
     width: 50%;
     &::placeholder {
       text-indent: 5%;
+    }
+    &:focus {
+      outline: none;
+      background-color: rgb(252, 210, 227);
     }
   }
 
