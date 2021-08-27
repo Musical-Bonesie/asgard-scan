@@ -1,5 +1,4 @@
 const usersModel = require("../models/usersModel");
-
 //User info validation, token creating and password encryption:
 const { check, validationResult } = require("express-validator");
 const jwt = require("jsonwebtoken");
@@ -26,6 +25,9 @@ async function getUsers(req, res) {
 }
 //Get a single user:
 async function getSingleUser(req, res) {
+  // const { id } = req.decoded.id;
+  // console.log(req.decoded.id);
+  ////
   const { username } = req.params;
   const singleUser = await user.findUnique({
     where: {

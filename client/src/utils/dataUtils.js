@@ -6,7 +6,13 @@ export const getProducts = () => axios.get(`/products`);
 //GET all users
 export const getUser = () => axios.get(`/users`);
 //GET single user
-export const getSingleUser = (username) => axios.get(`/users/${username}`);
+export const getSingleUser = (username, token) =>
+  axios.get(`/users/${username}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+//test above with token and header line 11-14
 //POST Login User
 export const loginUser = (userData) => axios.post("/users/login", userData);
 //POST Create new user/sign-up
