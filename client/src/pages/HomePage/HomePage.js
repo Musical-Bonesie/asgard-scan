@@ -45,6 +45,7 @@ export default class HomePage extends Component {
           products: res.data,
         });
         return getSingleUser(username);
+        // return getSingleUser(username, this.state.token);
       })
       .then((response) => {
         console.log(response.data);
