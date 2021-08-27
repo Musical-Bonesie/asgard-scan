@@ -45,6 +45,7 @@ export default class HomePage extends Component {
           products: res.data,
         });
         return getSingleUser(username);
+        // return getSingleUser(username, this.state.token);
       })
       .then((response) => {
         console.log(response.data);
@@ -73,19 +74,22 @@ export default class HomePage extends Component {
     });
   };
   deleteItem = () => {
-    //TODO Why is this returning an empty {} as the req?
-    console.log(this.state.deletedItem);
-    deleteProductSensitiveTo(this.state.username, this.state.deletedItem)
+    let deletedProduct = this.state.yesSensitivity.find(
+      (product) => product.productName === this.state.deletedItem.productName
+    );
+    console.log(deletedProduct.id);
+    deleteProductSensitiveTo(deletedProduct.id)
       .then((res) => {
         console.log(res.data);
-        //TODO add logic to only remove the deleted Item from yesSensitivity list
-        // if(res.status == 200){
+        // TODO add logic to only remove the deleted Item from yesSensitivity list
+        if (res.status === 200) {
+          console.log("The Response status was 200!");
 
-        // this.setState({
-        //   yesSensitivity: response.data,
+          // this.setState({
+          //   yesSensitivity: res.data,
 
-        // });
-        // }
+          // });
+        }
       })
       .catch((error) => {
         console.log(error);
@@ -171,9 +175,11 @@ export default class HomePage extends Component {
   };
 
   //Add product that user is NOT sensitive to and it compares ingredient list to products user IS sensitive to
-  addProductNoSensitivity = (product) => {
+  addProductNoSensitivity = (e, product) => {
+    e.preventDefault();
+    console.log(e);
     //TODO fix this: Already created logic to remove button but it removes all buttons not just the product that has been added
-    this.setState({ item: product, isActive: !this.state.isActive });
+    // this.setState({ item: product, isActive: !this.state.isActive });
     console.log("I'm not sensitive to this product:", product);
     addNotSensitiveProduct(this.state.username, product)
       .then((res) => {
@@ -190,7 +196,6 @@ export default class HomePage extends Component {
           return;
         }
 
-        console.log(addProduct);
         this.setState({ noSensitivity: addProduct });
 
         this.upDateNotSesitiveTo();
@@ -198,7 +203,6 @@ export default class HomePage extends Component {
       .catch((error) => {
         console.log("product did not add", error);
       });
-    console.log(this.state.noSensitivity);
   };
   //User types ingredents into the search bar: water, coconut oil, etc...  and returns products that do not contain those ingredients shown in the SEE MORE section
   handleOnChange = (event) => {
@@ -227,10 +231,6 @@ export default class HomePage extends Component {
   };
 
   render() {
-    //TODO delete this once done debugging the delete function/modal
-    // console.log("not sensitive", this.state.noSensitivity);
-    // console.log("yes sensitive", this.state.yesSensitivity);
-
     return (
       this.state.products && (
         <>
@@ -255,17 +255,12 @@ export default class HomePage extends Component {
                   onChange={this.handleOnChange}
                 />
               </label>
-              <h2 className="main__heading">DIVCOVER PRODUCTS</h2>
-              <p className="main__copy">
-                We've curated some products that don't contain any of the
-                ingredients you are sensitive to!
-              </p>
-              {/* //TODO change to display products  */}
               <ProductList displayProducts={this.state.displayProducts} />
               <h2 className="main__heading">AM I SENSITIVE?</h2>
 
               <p className="main__copy">
-                Add at lest one product that works for you{" "}
+                Add at least one product that you have used and do NOT have
+                sensitivity towards
               </p>
               <NoSensitivity
                 products={this.state.products}
@@ -284,7 +279,7 @@ export default class HomePage extends Component {
                 toggleModal={this.toggleModal}
               />
             </div>
-            {/* ///TODO Testing delete function with Modal below */}
+            {/* ///TODO Debugging delete function with Modal below */}
             <Modal
               isOpen={this.state.modal === true}
               className="modal__modal"

@@ -2,12 +2,20 @@
 
 A mobile web app (view this app at width: 375px) that helps users with sensitive skin narrow down which ingredients might be causing irritation.
 
+<<<<<<< HEAD
 ![Login](/server/public/images/login-page.png)
 ![Sign-up](/server/public/images/signup-page.png)
 
 # Features
 
 - User Auth: Password is hashed and encrypted before being saved into the database along with a unique token.
+=======
+Login:
+
+# Features
+
+- User Auth
+>>>>>>> feature/delete-product
 
 * Sign-Up to create an account that's saved in the database to gain access to the Home Page/Asgard Scan.
 
@@ -61,8 +69,11 @@ Currently a section that says "See More" will appear once ingredients have been 
 
 * npx prisma migrate dev --name init
 * Now you shuld be able to npm start in /server and /client to get the project up a running.
+<<<<<<< HEAD
 
 # Contact/Contributing:
 
 - To connect and message me, feel free to go to my Linkedin:
 - https://www.linkedin.com/in/signekurczaba/
+=======
+>>>>>>> feature/delete-product

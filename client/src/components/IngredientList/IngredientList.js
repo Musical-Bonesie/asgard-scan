@@ -11,11 +11,7 @@ export default function IngredientList({ sensitiveToIngredients }) {
         <h1 className="header__heading">
           WE THINK YOU MAY HAVE SENSITIVITIES TO:
         </h1>
-        <img
-          className="header__likelyImg"
-          src={likelySensitive}
-          alt="high likelyhood"
-        />
+        <h3 className="header__subheading">HIGH LIKELIHOOD</h3>
         {sensitiveToIngredients.map((ingredient) => {
           return (
             <section className="header__likelyhood" key={uuidv4()}>
@@ -28,15 +24,6 @@ export default function IngredientList({ sensitiveToIngredients }) {
             </section>
           );
         })}
-        {/* TODO keep this section or not? <img src={likelySensitive} alt="high likelyhood" />
-      <section className="header__likelyhood">
-        <p className="header__ingredients">MODERATE LIKELYHOOD INGREDIENTS</p>
-        <img
-          className="header__alert-icon"
-          alt="sensitive to icon"
-          src={alertIcon}
-        />
-      </section> */}
       </header>
     )
   );
