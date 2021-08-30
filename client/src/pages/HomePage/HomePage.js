@@ -37,7 +37,7 @@ export default class HomePage extends Component {
 
   componentDidMount() {
     const username = sessionStorage.getItem("username");
-    console.log(username);
+
     this.setState({ token: sessionStorage.getItem("token") });
     getProducts()
       .then((res) => {
@@ -48,7 +48,6 @@ export default class HomePage extends Component {
         // return getSingleUser(username, this.state.token);
       })
       .then((response) => {
-        console.log(response.data);
         const user = response.data;
         this.setState({
           userID: user.id,
