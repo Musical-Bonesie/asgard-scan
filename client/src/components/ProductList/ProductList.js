@@ -1,7 +1,6 @@
 import "./ProductList.scss";
 import { Link } from "react-router-dom";
 import noSensitivity from "../../assets/logo/no-sensitivity.svg";
-import seeMore from "../../assets/logo/see-more.svg";
 import { PORT } from "../../utils/dataUtils";
 import { v4 as uuidv4 } from "uuid";
 import { Component } from "react";

@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import add from "../../assets/logo/add-product.svg";
-import { PORT } from "../../utils/dataUtils";
+import { URL } from "../../utils/dataUtils";
 
 import "./NoSensitivity.scss";
 
@@ -14,7 +14,7 @@ export default function NoSensitivity({ addProductNoSensitivity, products }) {
               alt={product.productName}
               className="cardNotSensitive__image"
               variant="top"
-              src={`${PORT}${product.image}`}
+              src={`${URL}/${product.image}`}
             />
             <img
               onClick={(e) => addProductNoSensitivity(e, product)}

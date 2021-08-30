@@ -1,7 +1,5 @@
-import likelySensitive from "../../assets/logo/high-likelyhood-text.svg";
 import alertIcon from "../../assets/logo/alert-icon.svg";
 import { v4 as uuidv4 } from "uuid";
-
 import "./IngredientList.scss";
 
 export default function IngredientList({ sensitiveToIngredients }) {
