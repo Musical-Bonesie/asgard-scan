@@ -9,7 +9,6 @@ import YesSensitivity from "./components/YesSensitivity/YesSensitivity";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 
 function App() {
-  /// sessionStorage.
   return (
     <div className="App">
       <BrowserRouter>

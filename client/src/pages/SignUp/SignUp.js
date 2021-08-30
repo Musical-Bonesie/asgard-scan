@@ -16,6 +16,7 @@ class SignUp extends React.Component {
     e.preventDefault();
     signUpNewUser(this.state.formData)
       .then((res) => {
+        console.log(res.data);
         this.props.history.push("/login");
       })
       .catch((error) => alert(error, "signup was unsuccessful"));

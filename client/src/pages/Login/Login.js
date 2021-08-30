@@ -16,7 +16,7 @@ export default class Login extends Component {
 
   handleSubmit = (event) => {
     event.preventDefault();
-
+    console.log(loginUser);
     loginUser(this.state.formData)
       .then((res) => {
         sessionStorage.setItem("token", res.data);
@@ -25,6 +25,7 @@ export default class Login extends Component {
           event.target.username.value
         );
         this.props.history.push("/asgardscan");
+        console.log(addUsername);
       })
       .catch((error) => alert("Invalid Credentials", error));
   };

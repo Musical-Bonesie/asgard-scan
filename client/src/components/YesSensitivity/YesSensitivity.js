@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { PORT } from "../../utils/dataUtils";
+import { URL } from "../../utils/dataUtils";
 import add from "../../assets/logo/add-product.svg";
 import Alert from "../../assets/logo/see-more.svg";
 import "./YesSensitivity.scss";
@@ -18,7 +18,7 @@ export default function YesSensitivity({
               alt={product.productName}
               className="cardSensitive__image"
               variant="top"
-              src={`${PORT}${product.image}`}
+              src={`${URL}/${product.image}`}
             />
             <img
               onClick={() => addProductSensitivity(product)}
