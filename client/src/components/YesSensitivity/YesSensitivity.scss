@@ -23,6 +23,9 @@
   }
   &__button {
     width: 3rem;
+    &:active {
+      transform: perspective(100px) translateZ(-20px); // z-index: 1;
+    }
   }
   &__body {
     flex-basis: 100%;
