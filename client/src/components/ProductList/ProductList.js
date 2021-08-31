@@ -1,7 +1,7 @@
 import "./ProductList.scss";
 import { Link } from "react-router-dom";
 import noSensitivity from "../../assets/logo/no-sensitivity.svg";
-import { PORT } from "../../utils/dataUtils";
+import { URL } from "../../utils/dataUtils";
 import { v4 as uuidv4 } from "uuid";
 import { Component } from "react";
 
@@ -43,7 +43,7 @@ export default class ProductList extends Component {
                     {" "}
                     <img
                       className="product-list__image"
-                      src={`${PORT}${item.image}`}
+                      src={`${URL}/${item.image}`}
                       alt={item.productName}
                     />
                     <h4 className="product-list__data">{item.productName}</h4>

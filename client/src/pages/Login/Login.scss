@@ -21,6 +21,9 @@
   }
   &__logo {
     width: 30vw;
+    @include tablet {
+      width: 20vw;
+    }
   }
   &__input-top {
     display: block;
@@ -36,6 +39,9 @@
       outline: none;
       background-color: rgb(252, 210, 227);
     }
+    @include tablet {
+      width: auto;
+    }
   }
   &__input-bottom {
     display: block;
@@ -50,6 +56,9 @@
     &:focus {
       outline: none;
       background-color: rgb(252, 210, 227);
+    }
+    @include tablet {
+      width: auto;
     }
   }
 
