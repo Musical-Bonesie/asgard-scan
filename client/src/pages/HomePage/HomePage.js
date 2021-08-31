@@ -176,9 +176,6 @@ export default class HomePage extends Component {
   //Add product that user is NOT sensitive to and it compares ingredient list to products user IS sensitive to
   addProductNoSensitivity = (e, product) => {
     e.preventDefault();
-    console.log(e);
-    //TODO fix this: Already created logic to remove button but it removes all buttons not just the product that has been added
-    // this.setState({ item: product, isActive: !this.state.isActive });
     console.log("I'm not sensitive to this product:", product);
     addNotSensitiveProduct(this.state.username, product)
       .then((res) => {
@@ -245,12 +242,12 @@ export default class HomePage extends Component {
               <label className="main__copy">
                 {" "}
                 Type in the ingredient names that you're sensitive to seperated
-                by a comma and click on <em>see more</em> to find out which
-                products don't contain them!
+                by a comma and click on the button that appears below to find
+                out which products don't contain them!
                 <input
                   className="main__search--input"
                   type="text"
-                  placeholder="Lauryl Laurate, Tocopheryl Acetate,..."
+                  placeholder="Lauryl Laurate, Tocopheryl Acetate..."
                   onChange={this.handleOnChange}
                 />
               </label>
