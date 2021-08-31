@@ -7,6 +7,9 @@
   flex-wrap: wrap;
   padding: 2rem $padding-increment * 3;
   background-color: $primary-dark;
+  @include tablet {
+    padding: 4rem 2rem;
+  }
 
   &__heading {
     color: white;
@@ -15,13 +18,17 @@
     flex-basis: 100%;
     @include tablet {
       font-size: 2rem;
+      padding-bottom: 2rem;
     }
   }
   &__subheading {
     color: white;
     font-size: 0.75rem;
+    flex-basis: 100%;
+    padding-bottom: 0.5rem;
     @include tablet {
       font-size: 1rem;
+      padding-bottom: 1rem;
     }
   }
   &__likelyImg {
@@ -35,6 +42,9 @@
     border: 1px solid white;
     border-radius: 20px;
     padding: 0.25rem 0 $padding-increment 0;
+    @include tablet {
+      margin: 0.5rem;
+    }
   }
   &__ingredients {
     display: inline-block;

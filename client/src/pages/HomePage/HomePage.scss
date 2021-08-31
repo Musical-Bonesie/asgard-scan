@@ -11,7 +11,7 @@
     font-size: 1.5rem;
     padding: 1rem 0 0.5rem;
     @include tablet {
-      font-size: 2rem;
+      font-size: 2.5rem;
       flex-basis: 100%;
     }
   }
@@ -21,6 +21,8 @@
     margin: 1rem 0;
     @include tablet {
       font-size: 1.5rem;
+      font-size: 2rem;
+      margin: 2rem 0;
     }
   }
 
@@ -30,6 +32,9 @@
   &__search {
     padding: 0.5rem;
     background-color: white;
+    @include tablet {
+      font-size: 1.5rem;
+    }
   }
   &__search--input {
     display: block;
@@ -46,8 +51,14 @@
       outline: none;
       border-color: $primary-light;
     }
+    &::placeholder {
+      @include tablet {
+        font-size: 1.2rem;
+      }
+    }
     @include tablet {
       width: 50%;
+      padding: 1rem;
     }
   }
 
@@ -70,6 +81,9 @@
     box-shadow: 0 0 20px #eee;
     border-radius: 10px;
     display: block;
+    @include tablet {
+      padding: 10px 20px;
+    }
   }
 
   &__btn-grad:hover {

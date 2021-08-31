@@ -26,6 +26,9 @@
     &:active {
       transform: perspective(100px) translateZ(-20px); // z-index: 1;
     }
+    @include tablet {
+      width: 5rem;
+    }
   }
   &__body {
     flex-basis: 100%;
@@ -33,6 +36,9 @@
   &__heading {
     font-size: 0.7rem;
     color: $primary-dark;
+    @include tablet {
+      font-size: 1.5rem;
+    }
   }
   &__delete {
     color: $primary-light;
