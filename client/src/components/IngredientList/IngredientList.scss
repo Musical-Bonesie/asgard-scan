@@ -5,17 +5,24 @@
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
-  padding: $padding-increment * 3;
+  padding: 2rem $padding-increment * 3;
   background-color: $primary-dark;
 
   &__heading {
     color: white;
     font-size: 1.5rem;
     padding-bottom: $padding-increment * 2;
+    flex-basis: 100%;
+    @include tablet {
+      font-size: 2rem;
+    }
   }
   &__subheading {
     color: white;
     font-size: 0.75rem;
+    @include tablet {
+      font-size: 1rem;
+    }
   }
   &__likelyImg {
     width: 100vw;
