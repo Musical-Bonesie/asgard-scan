@@ -21,7 +21,7 @@ export default function YesSensitivity({
               src={`${URL}/${product.image}`}
             />
             <img
-              onClick={() => addProductSensitivity(product)}
+              onClick={(e) => addProductSensitivity(e, product)}
               className="cardSensitive__button"
               src={add}
               alt="add a yes product"
