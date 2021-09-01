@@ -82,11 +82,9 @@ export default class HomePage extends Component {
         console.log(res.data);
         // TODO add logic to only remove the deleted Item from yesSensitivity list
         if (res.status === 200) {
-          console.log("The Response status was 200!");
-
+          // console.log("The Response status was 200!");
           // this.setState({
           //   yesSensitivity: res.data,
-
           // });
         }
       })
@@ -143,9 +141,9 @@ export default class HomePage extends Component {
   };
 
   //User adds products to their yesSensitive list
-  addProductSensitivity = (product) => {
-    this.setState({ item: product, isActive: !this.state.isActive });
-
+  addProductSensitivity = (e, product) => {
+    e.preventDefault();
+    // this.setState({ item: product, isActive: !this.state.isActive });
     console.log("I'm sensitive to this product:", product);
     addSensitiveToProduct(this.state.username, product)
       .then((res) => {
@@ -170,7 +168,6 @@ export default class HomePage extends Component {
       .catch((error) => {
         console.log("product did not add", error);
       });
-    console.log(this.state.yesSensitivity);
   };
 
   //Add product that user is NOT sensitive to and it compares ingredient list to products user IS sensitive to
@@ -203,12 +200,8 @@ export default class HomePage extends Component {
   //User types ingredents into the search bar: water, coconut oil, etc...  and returns products that do not contain those ingredients shown in the SEE MORE section
   handleOnChange = (event) => {
     event.preventDefault();
-    console.log(event.target.value);
     const searchIngredients = event.target.value.toLowerCase();
-    console.log(searchIngredients);
-    const searchArr = searchIngredients.split(",");
-    console.log(searchIngredients);
-    console.log(searchArr);
+    // const searchArr = searchIngredients.split(",");
 
     this.setState({
       displayProducts: this.state.products.filter((product) => {
@@ -223,7 +216,6 @@ export default class HomePage extends Component {
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("username");
     this.props.history.push("/login");
-    console.log(this.props.history);
   };
 
   render() {
