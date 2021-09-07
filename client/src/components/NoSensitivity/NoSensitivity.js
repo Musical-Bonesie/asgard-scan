@@ -9,10 +9,14 @@ export default function NoSensitivity({ addProductNoSensitivity, products }) {
     <div className="cardNotSensitive">
       {products.map((product) => {
         console.log(product);
+        const product_name = product.productName
+          .toLowerCase()
+          .replace(/ /g, "-");
+        console.log(product_name);
         return (
           <div className="cardNotSensitive__content" key={uuidv4()}>
             <a
-              href={`https://asgardbeauty.com/collections/${product.brandName}`}
+              href={`https://asgardbeauty.com/products/${product_name}`}
               target="_blank"
               rel="noreferrer"
             >
