@@ -1,9 +1,9 @@
-import React from "react";
+import React, { Component } from "react";
 import { signUpNewUser } from "../../utils/dataUtils";
 import asgard_logo from "../../assets/logo/instagram_profile_logo_01.png.jpg";
 import "./SignUp.scss";
 
-class SignUp extends React.Component {
+class SignUp extends Component {
   state = {
     formData: null,
   };
