@@ -8,14 +8,25 @@ export default function NoSensitivity({ addProductNoSensitivity, products }) {
   return (
     <div className="cardNotSensitive">
       {products.map((product) => {
+        console.log(product);
+        const product_name = product.productName
+          .toLowerCase()
+          .replace(/ /g, "-");
+        console.log(product_name);
         return (
           <div className="cardNotSensitive__content" key={uuidv4()}>
-            <img
-              alt={product.productName}
-              className="cardNotSensitive__image"
-              variant="top"
-              src={`${URL}/${product.image}`}
-            />
+            <a
+              href={`https://asgardbeauty.com/products/${product_name}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <img
+                alt={product.productName}
+                className="cardNotSensitive__image"
+                variant="top"
+                src={`${URL}/${product.image}`}
+              />
+            </a>
             <img
               onClick={(e) => addProductNoSensitivity(e, product)}
               className="cardNotSensitive__button"

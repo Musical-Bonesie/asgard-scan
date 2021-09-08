@@ -1,58 +1,49 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+generator client {
+  provider = "prisma-client-js"
+}
 
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
 model User {
-  //create a primary key
   id             Int              @id @default(autoincrement())
-  username       String           @unique @db.VarChar(255)
-  password       String           @unique
+  username       String           @unique(map: "User.username_unique") @db.VarChar(255)
+  password       String           @unique(map: "User.password_unique")
   token          String
   firstName      String
   lastName       String
-  email          String           @unique
-  yesSensitivity YesSensitivity[]
+  email          String           @unique(map: "User.email_unique")
   noSensitivity  NoSensitivity[]
-
+  yesSensitivity YesSensitivity[]
 }
-
-//Products that user is sensitive to
 
 model YesSensitivity {
   id          Int        @id @default(autoincrement())
-  brandName   String     @db.VarChar(255)
-  productName String     @db.VarChar(255)
-  ingredients String     @db.VarChar(2000)
-  image       String
-  user        User       @relation(fields: [userId], references: [id])
   userId      Int
-  products    Products[] @relation(references: [id])
+  brandName   String     @db.VarChar(255)
+  image       String
+  ingredients String     @db.VarChar(2000)
+  productName String     @db.VarChar(255)
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade, map: "yessensitivity_ibfk_1")
+  products    Products[]
 
-
+  @@index([userId], map: "userId")
 }
-
-//Products that user is not sensitive to
 
 model NoSensitivity {
   id          Int        @id @default(autoincrement())
-  brandName   String     @db.VarChar(255)
-  productName String     @db.VarChar(255)
-  ingredients String     @db.VarChar(2000)
-  image       String
-  user        User       @relation(fields: [userId], references: [id])
   userId      Int
-  products    Products[] @relation(references: [id])
-}
+  brandName   String     @db.VarChar(255)
+  image       String
+  ingredients String     @db.VarChar(2000)
+  productName String     @db.VarChar(255)
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade, map: "nosensitivity_ibfk_1")
+  products    Products[]
 
-//List of all products and the relation to no_sensitivity and yes_sensitivity list for each user
+  @@index([userId], map: "userId")
+}
 
 model Products {
   id             Int              @id @default(autoincrement())
@@ -63,22 +54,6 @@ model Products {
   category       String           @db.VarChar(255)
   status         String
   image          String
-  noSensitivity  NoSensitivity[]  @relation(references: [id])
-  yesSensitivity YesSensitivity[] @relation(references: [id])
-
+  noSensitivity  NoSensitivity[]
+  yesSensitivity YesSensitivity[]
 }
-
-//TODO add this to add a password?
-// model Token {
-// id         Int       @id @default(autoincrement())
-// createdAt  DateTime  @default(now())
-// updatedAt  DateTime  @updatedAt
-// type       TokenType
-// emailToken String?   @unique // Only used for short lived email tokens
-// valid      Boolean   @default(true)
-// expiration DateTime
-
-// // Relation fields
-// user   User @relation(fields: [userId], references: [id])
-// userId Int
-// }
