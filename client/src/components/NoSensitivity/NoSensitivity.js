@@ -8,7 +8,6 @@ export default function NoSensitivity({ addProductNoSensitivity, products }) {
   return (
     <div className="cardNotSensitive">
       {products.map((product) => {
-        console.log(product);
         const product_name = product.productName
           .toLowerCase()
           .replace(/ /g, "-");

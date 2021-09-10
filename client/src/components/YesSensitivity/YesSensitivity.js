@@ -12,14 +12,24 @@ export default function YesSensitivity({
   return (
     <div className="cardSensitive">
       {products.map((product) => {
+        const product_name = product.productName
+          .toLowerCase()
+          .replace(/ /g, "-");
         return (
           <div className="cardSensitive__content" key={uuidv4()}>
-            <img
-              alt={product.productName}
-              className="cardSensitive__image"
-              variant="top"
-              src={`${URL}/${product.image}`}
-            />
+            <a
+              href={`https://asgardbeauty.com/products/${product_name}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {" "}
+              <img
+                alt={product.productName}
+                className="cardSensitive__image"
+                variant="top"
+                src={`${URL}/${product.image}`}
+              />
+            </a>
             <img
               onClick={() => addProductSensitivity(product)}
               className="cardSensitive__button"
