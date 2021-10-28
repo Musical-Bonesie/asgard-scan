@@ -5,7 +5,7 @@ A mobile web app (view this app at width: 375px) that helps users with sensitive
 ![Login](/server/public/images/login-page.png)
 ![Sign-up](/server/public/images/signup-page.png)
 
-- View the deployed app: ![Asgard-Scan](https://asgardscan.netlify.app/asgardscan)
+- View the deployed app: [Asgard-Scan](https://asgardscan.netlify.app/asgardscan)
 - You can use the following login info if you don't want to go through the sign-up process:
 - username: demo
 - password: demodemo
