@@ -223,7 +223,6 @@ export default class HomePage extends Component {
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("username");
     this.props.history.push("/login");
-    console.log(this.props.history);
   };
 
   render() {
