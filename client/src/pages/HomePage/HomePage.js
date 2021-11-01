@@ -65,7 +65,7 @@ export default class HomePage extends Component {
   // Function for closing the modal.
   closeModal = () => this.setState({ modal: false });
 
-  //Open Modal
+  //Open Modal and Delete Item are temporary until user profile page is created//
   toggleModal = (item) => {
     this.setState({
       modal: !this.state.modal,
@@ -149,7 +149,7 @@ export default class HomePage extends Component {
     console.log("I'm sensitive to this product:", product);
     addSensitiveToProduct(this.state.username, product)
       .then((res) => {
-        //add the products selected and send the ingredients to upDateNotSensitiveTo
+        //add the products selected and send the ingredients to upDateNotSensitiveTo()
         let addProduct = this.state.yesSensitivity;
         if (res.status !== 200) {
           return;
@@ -200,7 +200,7 @@ export default class HomePage extends Component {
         console.log("product did not add", error);
       });
   };
-  //User types ingredents into the search bar: water, coconut oil, etc...  and returns products that do not contain those ingredients shown in the SEE MORE section
+  //User types ingredents into the search bar: water, coconut oil, etc...  and returns products that do not contain those ingredients shown in the SEE MORE section/toggle()
   handleOnChange = (event) => {
     event.preventDefault();
     console.log(event.target.value);
@@ -274,7 +274,7 @@ export default class HomePage extends Component {
                 toggleModal={this.toggleModal}
               />
             </div>
-            {/* ///TODO Debugging delete function with Modal below */}
+            {/* ///TODO Once User page is created, delete Modal and function with modal below */}
             <Modal
               isOpen={this.state.modal === true}
               className="modal__modal"
