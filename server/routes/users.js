@@ -13,7 +13,7 @@ router.get("/", usersController.getUsers);
 ///GET single user from DB
 router.get("/:username", usersController.getSingleUser);
 //OG Abovetest below
-// router.get("/:username", authorize, usersController.getSingleUser);
+// TODO add authorize to return decoded info router.get("/:username", authorize, usersController.getSingleUser);
 
 ///POST
 //User Login
