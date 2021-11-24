@@ -10,7 +10,7 @@ module.exports = (req, res, next) => {
   const authToken = req.headers.authorization.split("")[1];
   jwt.verify(authToken, process.env.JWT_SECRET, (err, decoded) => {
     if (err) {
-      return res.status(401).send("invald Auth Token.");
+      return res.status(401).send("Invald Auth Token.");
     }
     //decoded is something that jwt gives us to work with. by setting decoded to req.decoded so we have access to the decoded jwt payload. if you don't decode it might cause an error from users if you don't define it here.
     req.decoded = decoded;
