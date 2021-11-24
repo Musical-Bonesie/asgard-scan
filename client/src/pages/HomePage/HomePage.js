@@ -44,6 +44,12 @@ export default class HomePage extends Component {
         this.setState({
           products: res.data,
         });
+        //[x] Send token back getSingleUser({
+        //   headers: {
+        //     Authorization: `Bearer ${token}`,
+        //   },
+        // }) to return a decoded usernmae/info.
+        // [x] TODO add authroization middleware to decode if user exsits.
         return getSingleUser(username);
         // return getSingleUser(username, this.state.token);
       })
