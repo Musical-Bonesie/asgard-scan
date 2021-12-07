@@ -27,6 +27,10 @@ async function getUsers(req, res) {
 async function getSingleUser(req, res) {
   // const { id } = req.decoded.id;
   // console.log(req.decoded.id);
+  const bearerToken = req.headers.authorization.split(" ")[1];
+  console.log(req.params.username);
+  req.decode = jwt.decode(bearerToken);
+  console.log(req.user);
   ////
   const { username } = req.params;
   const singleUser = await user.findUnique({
@@ -203,8 +207,8 @@ async function userLogin(req, res) {
   });
 
   // const accessToken = await jwt.signAccessToken(currentUser);
-  const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-    expiresIn: 3600000,
+  const token = jwt.sign({ username: user.username }, process.env.JWT_SECRET, {
+    expiresIn: "24hr",
   });
   if (!currentUser) {
     res.status(400).json({ msg: "Invalid Credentials" });
@@ -230,8 +234,8 @@ async function createNewUser(req, res) {
     });
   }
 
-  const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-    expiresIn: 3600000,
+  const token = jwt.sign({ username: user.username }, process.env.JWT_SECRET, {
+    expiresIn: "24hr",
   });
   //take the user password, add salt/8 random charaters to it and encrypt it.
   const hashedPassword = bcrypt.hashSync(password, 8);
