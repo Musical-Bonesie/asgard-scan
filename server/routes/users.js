@@ -8,14 +8,6 @@ const { user } = new PrismaClient();
 const { check, validationResult } = require("express-validator");
 const authorize = require("../middleware/authorize");
 
-///GET all users from DB
-router.get("/", usersController.getUsers);
-///GET single user from DB
-router.get("/:username", usersController.getSingleUser);
-//OG Abovetest below
-// TODO add authorize to return decoded info
-// router.get("/:username", authorize, usersController.getSingleUser);
-
 ///POST
 //User Login
 router.post(
@@ -48,5 +40,14 @@ router.patch("/sensitive/:username", usersController.addSensitiveTo);
 
 ///DELETE user can delete a product from their yesSensitive list.
 router.delete("/sensitive/:username", usersController.deleteProductSensitiveTo);
+
+///GET all users from DB
+router.get("/", usersController.getUsers);
+
+///GET single user from DB
+// router.get("/:username", usersController.getSingleUser);
+//OG Above test below
+// TODO add authorize to return decoded info
+router.get("/:username", authorize, usersController.getSingleUser);
 
 module.exports = router;
