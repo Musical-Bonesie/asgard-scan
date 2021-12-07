@@ -25,14 +25,13 @@ async function getUsers(req, res) {
 }
 //Get a single user:
 async function getSingleUser(req, res) {
-  // const { id } = req.decoded.id;
-  // console.log(req.decoded.id);
+  //TODO Think about changing from params to sending an obj with username.
   const bearerToken = req.headers.authorization.split(" ")[1];
-  console.log(req.params.username);
+  console.log(req.username);
   req.decode = jwt.decode(bearerToken);
-  console.log(req.user);
+
   ////
-  const { username } = req.params;
+  const { username } = req;
   const singleUser = await user.findUnique({
     where: {
       username: username,
