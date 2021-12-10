@@ -25,7 +25,10 @@ async function getUsers(req, res) {
 }
 //Get a single user:
 async function getSingleUser(req, res) {
-  //TODO Think about changing from params to sending an obj with username.
+  // TODO
+  //Think about changing from params to sending an obj with username.
+  // Making that change might be better in the long run but will require
+  //Some changes to client side routes as well.
   const bearerToken = req.headers.authorization.split(" ")[1];
   console.log(req.username);
   req.decode = jwt.decode(bearerToken);
