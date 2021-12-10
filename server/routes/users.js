@@ -48,6 +48,7 @@ router.get("/", usersController.getUsers);
 // router.get("/:username", usersController.getSingleUser);
 //OG Above test below
 // TODO add authorize to return decoded info
+
 router.get("/:username", authorize, usersController.getSingleUser);
 
 module.exports = router;
