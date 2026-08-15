@@ -12,12 +12,13 @@ import {
   addSensitiveToProduct,
   deleteProductSensitiveTo,
 } from "../../utils/dataUtils";
+import withRouter from "../../utils/withRouter";
 import "./HomePage.scss";
 import Modal from "react-modal";
 
 Modal.setAppElement("#root");
 
-export default class HomePage extends Component {
+class HomePage extends Component {
   state = {
     userID: null,
     username: this.props.username,
@@ -334,3 +335,5 @@ export default class HomePage extends Component {
     );
   }
 }
+
+export default withRouter(HomePage);

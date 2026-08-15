@@ -1,10 +1,11 @@
 import React, { Component } from "react";
 import { loginUser } from "../../utils/dataUtils";
+import withRouter from "../../utils/withRouter";
 import asgard_logo from "../../assets/logo/instagram_profile_logo_01.png.jpg";
 import button from "../../assets/logo/button.svg";
 import "./Login.scss";
 
-export default class Login extends Component {
+class Login extends Component {
   state = {
     formData: null,
   };
@@ -16,18 +17,15 @@ export default class Login extends Component {
 
   handleSubmit = (event) => {
     event.preventDefault();
-    console.log(loginUser);
+    const username = event.target.username.value;
     loginUser(this.state.formData)
       .then((res) => {
-        sessionStorage.setItem("token", res.data);
-        const addUsername = sessionStorage.setItem(
-          "username",
-          event.target.username.value
-        );
+        // The API now returns { token }, not a bare token string.
+        sessionStorage.setItem("token", res.data.token);
+        sessionStorage.setItem("username", username);
         this.props.history.push("/asgardscan");
-        console.log(addUsername);
       })
-      .catch((error) => alert("Invalid Credentials", error));
+      .catch(() => alert("Invalid credentials."));
   };
   componentWillUnmount() {
     // fix Warning: Can't perform a React state update on an unmounted component
@@ -88,3 +86,5 @@ export default class Login extends Component {
     );
   }
 }
+
+export default withRouter(Login);

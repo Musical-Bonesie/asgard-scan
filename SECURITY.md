@@ -69,8 +69,35 @@ vendored dependencies). **No real secrets were found:**
 - Prisma 3.x → current
 - Removed the unused `mysql` package (Prisma handles the driver)
 - Moved `nodemon` to `devDependencies`
-- Client migrated off the deprecated `react-scripts` 4.0.3 (Create React App) —
-  the source of nearly all 197 client-side advisories
+- Client migrated off the deprecated `react-scripts` 4.0.3 (Create React App) to
+  Vite — CRA was the source of nearly all 197 client-side advisories. Also
+  React 17 → 18 (`createRoot`), react-router 5 → 7 (`Routes`/`element`,
+  `Navigate`, an `Outlet`-based `ProtectedRoute`), and axios 0.21 → 1.x.
+
+**Result: 0 known vulnerabilities in both workspaces** (was 25 server / 197
+client).
+
+| Workspace | Before | After |
+| --- | --- | --- |
+| `server` | 25 (1 critical, 15 high) | **0** |
+| `client` | 197 (18 critical, 59 high) | **0** |
+
+### Client-side fixes
+
+The client had to change to match the hardened API:
+
+- Every authenticated call now sends its bearer token via a shared axios
+  request interceptor. Previously only `getSingleUser` sent one and the callers
+  mostly forgot, so the mutating endpoints were being called unauthenticated.
+- A response interceptor clears the stored token on any `401`, so an expired
+  session cannot leave the UI in a half-authenticated state.
+- Removed `getUser()`, which called the deleted dump-every-user endpoint.
+- `loginUser` no longer hardcodes the dead Heroku URL.
+- `deleteProductSensitiveTo` takes a record id instead of a username.
+- `ProtectedRoute` rendered a hardcoded `HomePage` for every protected route
+  regardless of the element passed to it. It now renders an `<Outlet />`.
+- Note: `ProtectedRoute` is a UX convenience only, never a security boundary.
+  Authorization is enforced server-side on every request.
 
 ## Credential rotation checklist
 

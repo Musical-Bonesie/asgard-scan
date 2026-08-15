@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { signUpNewUser } from "../../utils/dataUtils";
+import withRouter from "../../utils/withRouter";
 import asgard_logo from "../../assets/logo/instagram_profile_logo_01.png.jpg";
 import "./SignUp.scss";
 
@@ -98,4 +99,4 @@ class SignUp extends Component {
   }
 }
 
-export default SignUp;
+export default withRouter(SignUp);

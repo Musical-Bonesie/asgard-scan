@@ -40,41 +40,67 @@ Currently a section that says "See More" will appear once ingredients have been 
 - User ability to manually add any product to their lists to save in the database.
 - Add a scan feature so users can scan products with their mobile phone to add the ingredients, brand name, product name etc.. to their profile and database.
 
+# Stack
+
+- **Client:** React 18 + Vite (migrated off Create React App, which is
+  deprecated and was the source of ~197 dependency advisories)
+- **Server:** Express + Prisma 6 on MySQL
+- **Tests:** Jest + Supertest (server), Vitest + Testing Library (client)
+
 # Installation and Usage
 
-- Clone the project via this Terminal command
+1. Clone the project and `cd` into the project folder.
 
-- cd into project folder
+2. Install dependencies in each workspace:
 
-- cd into both /client and /server folder and run npm install in each.
+   ```
+   cd server && npm install
+   cd ../client && npm install
+   ```
 
-- Create a database (this project uses mySQL, Prisma, JavaScript) to connect to this project
+3. Create the database (MySQL):
 
-* In Terminal, type mysql -u root -p to login as root user.
-* In the mysql console, type: CREATE DATABASE asgardscanisawesome;
+   ```
+   mysql -u root -p
+   CREATE DATABASE asgardscan;
+   ```
 
-- Next install Prisma in the /server:
+4. Configure the server. Copy `server/.env.sample` to `server/.env` and set:
 
-* npm install prisma --save-dev
-* npx prisma
+   - `JWT_SECRET` — generate a high-entropy value, do NOT pick a memorable
+     string:
 
-- In /server go to the .env file, add a value for:
+     ```
+     node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+     ```
 
-* your JWT_SECRET env variable. Generate a high-entropy random value — do NOT
-  pick a memorable string:
+     The server refuses to start without it rather than signing tokens with
+     `undefined`.
 
-  ```
-  node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
-  ```
+   - `PORT` — e.g. `8080`
+   - `CORS_ORIGINS` — comma-separated list of allowed browser origins, e.g.
+     `http://localhost:3000`. The server no longer accepts every origin.
+   - `DATABASE_URL` — e.g.
+     `mysql://user:password@localhost:3306/asgardscan`
 
-  -Add a port number
-* update the DATABASE_URL with your information:
-  DATABASE_URL="mysql://yourname:randompassword@localhost:5432/mydbname?schema=public"
+5. Configure the client. Copy `client/.env.sample` to `client/.env` and set
+   `VITE_API_URL` to the server's URL. Vite only exposes `VITE_`-prefixed
+   variables, and everything in that file is bundled into the JavaScript, so
+   never put a secret there.
 
-- In terminal:
+6. Run the migrations and start both halves:
 
-* npx prisma migrate dev --name init
-* Now you shuld be able to npm start in /server and /client to get the project up a running.
+   ```
+   cd server && npx prisma migrate dev && npm run dev
+   cd client && npm run dev
+   ```
+
+# Tests
+
+```
+cd server && npm test    # 27 tests: auth, authorization, token handling
+cd client && npm test    #  6 tests: route guarding, API surface
+```
 
 # Contact/Contributing:
 
