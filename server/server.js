@@ -1,24 +1,9 @@
-const express = require("express");
-const app = express();
-const cors = require("cors");
-const productsRoutes = require("./routes/products");
-const usersRoutes = require("./routes/users");
+// Entry point. All app wiring lives in app.js so the app can be imported by
+// tests without binding a port.
+const app = require("./app");
 
-app.use(cors());
-app.use(express.static("public/images"));
-
-//helps avoid issues with reading the req body.
-app.use(express.json());
-
-//configuration
-require("dotenv").config();
 const PORT = process.env.PORT || 8080;
 
-//ROUTES
-app.use("/products", productsRoutes);
-app.use("/users", usersRoutes);
-
-//PORT Listening on..
 app.listen(PORT, () => {
   console.log(`Server is now running on port ${PORT}`);
 });

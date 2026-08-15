@@ -43,9 +43,9 @@ vendored dependencies). **No real secrets were found:**
 | # | Issue | Resolution |
 | --- | --- | --- |
 | 1 | `authorize` middleware was applied to **zero** routes — every endpoint public | Applied to all user-data and mutating routes |
-| 2 | Middleware read `req.headers.aithorization` (typo), so its guard never fired | Correct header key |
-| 3 | Token parsed with `.split("")[1]` — splits into characters, yields one char | Proper `Bearer <token>` parsing |
-| 4 | Missing auth header threw a 500 instead of rejecting | Returns 401 |
+| 2 | Middleware read `req.headers.aithorization` (typo). Because that key never exists, the guard fired on **every** request and returned 401 unconditionally — the middleware was fail-closed and completely unusable, which is why it ended up commented out of the routes | Correct header key |
+| 3 | Token parsed with `.split("")[1]`, which splits the header into single characters and uses the letter `e` as the token. Unreachable in practice because of #2 | Proper `Bearer <token>` parsing, whitespace-split and case-insensitive |
+| 4 | `jwt.verify` used the callback form, making it easy to continue into the handler after already responding | Throwing form inside `try/catch`; fails closed |
 | 5 | `jwt.sign({ id: user.id })` used the Prisma **model delegate**, not the logged-in user — every token carried an empty payload | Signs the authenticated user's real id/username |
 | 6 | Login signed a token *before* verifying the password | Reordered: find user → verify password → then sign |
 | 7 | `Invalid Credentials` branches lacked `return`, so execution continued after responding | Added `return` on every failure path |
@@ -56,7 +56,12 @@ vendored dependencies). **No real secrets were found:**
 | 12 | `cors()` open to all origins | Env-driven origin allowlist |
 | 13 | bcrypt cost factor 8 | Raised to 12 |
 | 14 | Token expiry `3600000` **seconds** (~41 days) | `1h` |
-| 15 | JWTs persisted in the database `token` column | No longer stored |
+| 15 | JWTs persisted in the database `token` column | No longer stored; column dropped by migration |
+| 16 | The public `GET /products` catalogue selected the `noSensitivity` and `yesSensitivity` relations, leaking users' skin-sensitivity records (with `userId`) to unauthenticated callers | Relations removed from the selection |
+| 17 | `@unique` index on `User.password`. Harmless while bcrypt salts every hash, but a password-existence oracle under any deterministic hashing | Index dropped by migration |
+| 18 | Login responses distinguished "no such user" from "wrong password", enabling account enumeration | Identical `401` response for both |
+| 19 | No error handler; thrown errors returned stack traces to the client | Central handler returns a generic 500 |
+| 20 | Dead `models/*.js` flat-file store and `data/users.json` fixture containing a plaintext password field | Removed |
 
 ### Dependencies
 

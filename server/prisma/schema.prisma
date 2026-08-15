@@ -10,8 +10,12 @@ datasource db {
 model User {
   id             Int              @id @default(autoincrement())
   username       String           @unique(map: "User.username_unique") @db.VarChar(255)
-  password       String           @unique(map: "User.password_unique")
-  token          String
+  // No @unique on password. A unique index on a credential column is a
+  // password-existence oracle the moment hashing stops being salted, and it
+  // serves no purpose even now.
+  password       String
+  // The `token` column is gone: JWTs are stateless and must not be persisted.
+  // Storing them turned the users table into a live credential store.
   firstName      String
   lastName       String
   email          String           @unique(map: "User.email_unique")

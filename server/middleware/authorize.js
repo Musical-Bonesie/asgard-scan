@@ -1,19 +1,35 @@
 const jwt = require("jsonwebtoken");
-//this verifies
+
+/**
+ * Verifies the caller's bearer token and attaches the authenticated identity
+ * to `req.user`.
+ *
+ * Downstream handlers MUST authorize against `req.user` rather than trusting a
+ * `:username` URL parameter -- that param is attacker-controlled.
+ */
 module.exports = (req, res, next) => {
-  //Check to see Authorize Header. It isn't sent in the body but the header
-  if (!req.headers.aithorization) {
-    return res.status(401).send("Please login.");
+  const header = req.headers.authorization;
+
+  if (!header) {
+    return res.status(401).json({ msg: "Authentication required." });
   }
-  //now we verify that the jwt is valid. When this info is sent it's going to be a string that starts with 1Bearer along with the web token. But we don't want the word Bearer included it will mess up our jwt
-  //so we use .split() to sperate Bearer from the actual jwt so it doens't mess up our req and our auith toaken will be [1] in the array we created using .split(')
-  const authToken = req.headers.authorization.split("")[1];
-  jwt.verify(authToken, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) {
-      return res.status(401).send("invald Auth Token.");
-    }
-    //decoded is something that jwt gives us to work with. by setting decoded to req.decoded so we have access to the decoded jwt payload. if you don't decode it might cause an error from users if you don't define it here.
-    req.decoded = decoded;
-    next();
-  });
+
+  // Expect exactly "Bearer <token>". Split on whitespace, not on "".
+  const [scheme, token, ...rest] = header.trim().split(/\s+/);
+
+  if (!scheme || scheme.toLowerCase() !== "bearer" || !token || rest.length) {
+    return res.status(401).json({ msg: "Malformed Authorization header." });
+  }
+
+  try {
+    // Throwing form rather than the callback form: the callback made it easy to
+    // fall through to the handler after already responding. Fail closed.
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = { id: payload.id, username: payload.username };
+    return next();
+  } catch (err) {
+    // Covers bad signature, malformed token, and expiry alike. Deliberately
+    // does not leak which one failed.
+    return res.status(401).json({ msg: "Invalid or expired token." });
+  }
 };

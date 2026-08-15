@@ -1,9 +1,7 @@
-const productsController = require("../controllers/productsController");
 const router = require("express").Router();
-const path = require("path");
-const public = path.join(__dirname, "public");
+const productsController = require("../controllers/productsController");
 
-//GET
+// The product catalogue is public, non-personal reference data.
 router.get("/", productsController.getProducts);
 
 module.exports = router;

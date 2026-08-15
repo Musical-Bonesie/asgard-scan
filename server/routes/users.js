@@ -1,51 +1,65 @@
-const usersController = require("../controllers/usersController");
 const router = require("express").Router();
-const path = require("path");
-const public = path.join(__dirname, "public");
-//TODO delete line 9 and 10 and make sure it's inside the userController
-const { PrismaClient } = require("@prisma/client");
-const { user } = new PrismaClient();
-const { check, validationResult } = require("express-validator");
+const { check } = require("express-validator");
+
+const usersController = require("../controllers/usersController");
 const authorize = require("../middleware/authorize");
 
-///GET all users from DB
-router.get("/", usersController.getUsers);
-///GET single user from DB
-router.get("/:username", usersController.getSingleUser);
-//OG Abovetest below
-// router.get("/:username", authorize, usersController.getSingleUser);
+// NOTE: `GET /users` is deliberately absent. It previously returned every user
+// in the database along with their skin-sensitivity records, unauthenticated.
 
-///POST
-//User Login
+// --- Public routes -------------------------------------------------------
+
 router.post(
   "/login",
-  [check("username", "invalid username")],
+  [
+    check("username").isString().trim().notEmpty(),
+    check("password").isString().notEmpty(),
+  ],
   usersController.userLogin
 );
 
-//New User Sign up
 router.post(
   "/signup",
   [
-    check("email", "Please provide a valid email").isEmail(),
-    check(
-      "password",
-      "Please create a password with more than 5 characters"
-    ).isLength({
-      min: 6,
-    }),
+    check("username")
+      .isString()
+      .trim()
+      .isLength({ min: 3, max: 255 })
+      .withMessage("Username must be 3-255 characters"),
+    check("email")
+      .isEmail()
+      .withMessage("Please provide a valid email")
+      .normalizeEmail(),
+    check("password")
+      .isLength({ min: 6 })
+      .withMessage("Please create a password with more than 5 characters"),
+    check("firstName").isString().trim().notEmpty(),
+    check("lastName").isString().trim().notEmpty(),
   ],
   usersController.createNewUser
 );
 
-///PATCH
-//user adds a product to noSensitive list in DB that they are NOT sensitive to:
-router.patch("/:username", usersController.addNotSensitiveTo);
+// --- Authenticated routes ------------------------------------------------
+// Every route below requires a valid bearer token. Handlers additionally check
+// ownership, because a valid token for user A must not grant access to user B.
 
-//user adds a product to yesSensitive DB list:
-router.patch("/sensitive/:username", usersController.addSensitiveTo);
+router.get("/:username", authorize, usersController.getSingleUser);
 
-///DELETE user can delete a product from their yesSensitive list.
-router.delete("/sensitive/:username", usersController.deleteProductSensitiveTo);
+// Add a product the user is NOT sensitive to.
+router.patch("/:username", authorize, usersController.addNotSensitiveTo);
+
+// Add a product the user IS sensitive to.
+router.patch(
+  "/sensitive/:username",
+  authorize,
+  usersController.addSensitiveTo
+);
+
+// Remove one of the caller's own "sensitive to" records, addressed by its id.
+router.delete(
+  "/sensitive/:id",
+  authorize,
+  usersController.deleteProductSensitiveTo
+);
 
 module.exports = router;
