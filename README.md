@@ -5,10 +5,13 @@ A mobile web app (view this app at width: 375px) that helps users with sensitive
 ![Login](/server/public/images/login-page.png)
 ![Sign-up](/server/public/images/signup-page.png)
 
-- View the deployed app: [Asgard-Scan](https://asgardscan.netlify.app/asgardscan)
-- You can use the following login info if you don't want to go through the sign-up process:
-- username: demo
-- password: ***REDACTED***
+> **⚠️ Status: archived / not production-ready.**
+> This is a 2021 bootcamp-era capstone. The backend (Heroku) is no longer running.
+> Do not redeploy this code as-is — see [SECURITY.md](SECURITY.md) for the
+> remediation record and the credential-rotation checklist.
+
+- The previously published demo account has been retired. Use the sign-up flow to
+  create an account against your own local database.
 
 # Features
 
@@ -57,7 +60,13 @@ Currently a section that says "See More" will appear once ingredients have been 
 
 - In /server go to the .env file, add a value for:
 
-* your JWT_SECRET env variable, choose any value.
+* your JWT_SECRET env variable. Generate a high-entropy random value — do NOT
+  pick a memorable string:
+
+  ```
+  node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+  ```
+
   -Add a port number
 * update the DATABASE_URL with your information:
   DATABASE_URL="mysql://yourname:randompassword@localhost:5432/mydbname?schema=public"
