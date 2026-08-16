@@ -1,108 +1,61 @@
-# Asagrd-Scan
+# Asgard Beauty — Shopify App
 
-A mobile web app (view this app at width: 375px) that helps users with sensitive skin narrow down which ingredients might be causing irritation.
+A two-part skincare tool for [asgardbeauty.com](https://asgardbeauty.com), a
+multi-brand retailer carrying 95 products across 19 brands.
 
-![Login](/server/public/images/login-page.png)
-![Sign-up](/server/public/images/signup-page.png)
+1. **Ingredient comparison** — a customer photographs a product they already use,
+   and we compare its ingredients against the catalogue and against their own
+   reaction history, to help narrow down what their skin reacts to.
+2. **AI skin analyzer** — photos plus a short lifestyle questionnaire produce a
+   cosmetic assessment and product recommendations, each with the reasoning shown.
 
-> **⚠️ Status: archived / not production-ready.**
-> This is a 2021 bootcamp-era capstone. The backend (Heroku) is no longer running.
-> Do not redeploy this code as-is — see [SECURITY.md](SECURITY.md) for the
-> remediation record and the credential-rotation checklist.
+The goal is informed decisions, not pushing product. Recommendations explain
+*why* something suits a given skin state, and defer to a dermatologist on anything
+clinical — this gives cosmetic guidance, never diagnosis.
 
-- The previously published demo account has been retired. Use the sign-up flow to
-  create an account against your own local database.
+## Status
 
-# Features
+Early. The design for the first sub-project is written and approved; implementation
+has not started.
 
-- User Auth: Password is hashed and encrypted before being saved into the database along with a unique token.
+| # | Sub-project | Status |
+| --- | --- | --- |
+| **1** | Ingredient data foundation | **Design approved** — [spec](docs/superpowers/specs/2026-08-15-ingredient-foundation-design.md) |
+| 2 | Ingredient comparison | Not started |
+| 3 | AI skin analyzer | Not started |
+| 4 | Native mobile app | Deferred — mobile web first |
 
-* Sign-Up to create an account that's saved in the database to gain access to the Home Page/Asgard Scan.
+Sub-projects 2 and 3 both depend on 1: neither works without structured ingredient
+data.
 
-* Login: Using user Authentication to only allow valid users to gain access to the Home Page/Asgard Scan.
+## Planned stack
 
-* User can add products that they know they aren't sensitive to and add products that they have had a negative reaction to. Ingredients (from the products the user has added) will be compared between the products they do not have sensitivities torward and products they have sensitivities/irritations from. Once the comparision is finished, the potential ingredients causing irritation will be returned and displayed at the top of the page (this may change as I refine the design of the page and add responsiveness across all sreen sizes).
-  The more products the database has to compare for the user the more refined/accurate the suggested ingredients that might be causing sensitivities will be.
+- **Shopify app** — theme app extension for the storefront, plus an admin surface
+- **Shopify metafields** — source of truth for per-product INCI ingredient lists
+- **Supabase (Postgres)** — ingredient dictionary, and later user data under
+  row-level security
+- **Claude** — ingredient extraction and classification
 
-Note: The products the user adds to their "Sensitive To" and "Not Sensitive To" lists will be saved in the relational database to their user profile.
+**Identity comes from Shopify customer accounts. This app stores no passwords.**
 
-- Users can also initiate a product search for products that do not include specific ingredients by manually typing ingredients they would like to exclude (seperated by a comma ",") into the search bar:
+## History
 
-ex/ water, coconut oil,
+This repository previously held *Asgard Scan*, a 2021 bootcamp capstone
+(Express + Create React App + Prisma/MySQL) exploring the same ingredient-comparison
+idea. Its backend has been offline for years.
 
-Once ingredients have been typed in, a list of products WITHOUT those ingredients will be displayed.
-Currently a section that says "See More" will appear once ingredients have been typed into the search bar and the user can click on "See More" to view all suggested products without the ingredients they searched.
+That application still lives on the `main` branch in a hardened state, and in git
+history. It was **not** simply deleted — it went through a full security
+remediation first:
 
-# Future Features
+- Authentication and authorization fixed. The `authorize` middleware had been
+  applied to zero routes, leaving every endpoint public.
+- Dependency vulnerabilities: 222 → **0**
+- 40,400 vendored `node_modules` files purged from git history (119 MB → 12 MB)
+- First test suite added: 33 tests
 
-- Add responsiveness for all screen sizes
-- Add a user profile where they can edit their profile and product lists
-- User ability to manually add any product to their lists to save in the database.
-- Add a scan feature so users can scan products with their mobile phone to add the ingredients, brand name, product name etc.. to their profile and database.
+The full record, including the credential-rotation checklist, is in
+[SECURITY.md](SECURITY.md).
 
-# Stack
-
-- **Client:** React 18 + Vite (migrated off Create React App, which is
-  deprecated and was the source of ~197 dependency advisories)
-- **Server:** Express + Prisma 6 on MySQL
-- **Tests:** Jest + Supertest (server), Vitest + Testing Library (client)
-
-# Installation and Usage
-
-1. Clone the project and `cd` into the project folder.
-
-2. Install dependencies in each workspace:
-
-   ```
-   cd server && npm install
-   cd ../client && npm install
-   ```
-
-3. Create the database (MySQL):
-
-   ```
-   mysql -u root -p
-   CREATE DATABASE asgardscan;
-   ```
-
-4. Configure the server. Copy `server/.env.sample` to `server/.env` and set:
-
-   - `JWT_SECRET` — generate a high-entropy value, do NOT pick a memorable
-     string:
-
-     ```
-     node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
-     ```
-
-     The server refuses to start without it rather than signing tokens with
-     `undefined`.
-
-   - `PORT` — e.g. `8080`
-   - `CORS_ORIGINS` — comma-separated list of allowed browser origins, e.g.
-     `http://localhost:3000`. The server no longer accepts every origin.
-   - `DATABASE_URL` — e.g.
-     `mysql://user:password@localhost:3306/asgardscan`
-
-5. Configure the client. Copy `client/.env.sample` to `client/.env` and set
-   `VITE_API_URL` to the server's URL. Vite only exposes `VITE_`-prefixed
-   variables, and everything in that file is bundled into the JavaScript, so
-   never put a secret there.
-
-6. Run the migrations and start both halves:
-
-   ```
-   cd server && npx prisma migrate dev && npm run dev
-   cd client && npm run dev
-   ```
-
-# Tests
-
-```
-cd server && npm test    # 27 tests: auth, authorization, token handling
-cd client && npm test    #  6 tests: route guarding, API surface
-```
-
-# Contact/Contributing:
-
-- To connect and message me, feel free to go to my Linkedin:
-- https://www.linkedin.com/in/signekurczaba/
+**Do not redeploy the old application.** It is kept as a reference, not as
+something to run.

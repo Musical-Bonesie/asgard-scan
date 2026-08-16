@@ -31,6 +31,32 @@ Sub-projects 2 and 3 both depend on this one. Nothing else can be built first.
   Anything reading as a medical claim ("you have rosacea") crosses into
   medical-device territory in the US, EU, and Canada. This constraint shapes
   sub-project 3 but is recorded here because it is a project-wide rule.
+- **Identity: Shopify customer accounts. This application stores no passwords.**
+  Storefront identity comes from the login the store already has; Supabase Auth
+  carries the session. See "No inherited data" below for why this was a free choice.
+- **Clean slate.** The predecessor Express + React application has been removed
+  from this branch. It remains on `main` — hardened, tested, 0 vulnerabilities —
+  and in git history, so nothing is lost.
+
+### No inherited data — and what that bought
+
+The predecessor application's Heroku backend has been offline for years
+(`https://asgard-scan.herokuapp.com` returns 404) and its database went with it.
+There is **no data to migrate and no schema to preserve**, which removes the usual
+constraint on a rewrite.
+
+The most valuable consequence is the identity decision above. The old application
+hand-rolled JWT authentication, and that is exactly where its critical defects
+lived: tokens signed with an empty payload, a token issued before the password was
+verified, and a `@unique` index on the password column. With no user table to carry
+forward, the correct answer — **do not own authentication at all** — costs nothing.
+A live user table would have made the same decision a migration project.
+
+**Outstanding verification (not blocking this sub-project):** deleting a Heroku app
+deletes its add-ons, but a database provisioned standalone, or attached to a second
+app, can outlive the app it was created for. Confirm in the Heroku dashboard that
+no add-on database or `pg:backups` export is still holding user rows. This matters
+for data-protection obligations, not for migration.
 
 ---
 
