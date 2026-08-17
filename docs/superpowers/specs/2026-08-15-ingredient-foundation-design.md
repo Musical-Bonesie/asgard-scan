@@ -153,29 +153,67 @@ product data outside Shopify, where it is invisible in the admin and lost if the
 app dies. The rule that resolves it: **product facts live on the product;
 reference data lives in the database.**
 
-### Database choice: Supabase
+### App server: React Router 7
 
-Chosen against the needs of all three build sub-projects, not just this one:
+Scaffolded from Shopify's **React Router template** (`@shopify/shopify-app-react-router`),
+which Shopify documents as "recommended for most apps" and actively maintains.
+Remix v2 became React Router v7 — same lineage and loader/action model, new
+package name. The Remix template still exists but is no longer the recommended
+path for new apps.
 
-| Need | Why Supabase |
+Rejected alternatives, and why:
+
+| Option | Why not |
 | --- | --- |
-| Ingredient dictionary (canonical → synonyms → flags) | Real Postgres; the model is relational |
-| Per-user isolation of reaction history (sub-project 2) | Row-level security enforced in the database, not in application code |
-| Skin photographs (sub-project 3) | Storage with signed expiring URLs; hard delete for GDPR/BIPA erasure requests |
-| Possible ingredient similarity search | `pgvector` already present |
+| **NestJS** | No view layer. A Shopify app must render an embedded admin UI inside Shopify's iframe, so NestJS means a Nest API *plus* a separate React SPA with session tokens wired between them — which is exactly the split-brain architecture the predecessor app had. No official Shopify template either. |
+| **Ruby on Rails** | An officially maintained template, and genuinely stronger on background jobs and testing. Rejected on learning surface: it means Ruby, Rails, and Shopify simultaneously, while every Shopify example needs translating from JS. |
+| **Express** | Officially maintained, and closest to the predecessor app — but backend-only, so it has the same two-app problem as NestJS. |
 
-Alternatives rejected: Neon and PlanetScale are database-only, requiring separate
-auth and object-storage vendors; Firebase is a poor fit for a graph-shaped
-ingredient model.
+The decisive factor is that a Shopify app is UI-bearing. React Router puts the
+server and the admin UI in one application, with OAuth, session tokens, and
+webhook HMAC verification already implemented and maintained by Shopify.
 
-**Prerequisite:** the Supabase connector is not currently authorized in the
-development environment. Schema and migrations can be written without it;
-operating the project directly requires connecting it in claude.ai connector
-settings.
+### Database: deferred
 
-**Deferred to sub-project 3:** once skin photographs are stored, a signed DPA and
-an explicit data region are required. Not a blocker for this sub-project, which
-stores no personal data.
+**This sub-project uses no application database.** The reasoning:
+
+- It stores **no user data** — extraction and review are admin-only.
+- Shopify metafields are the source of truth, so any database here is a
+  rebuildable projection rather than a system of record.
+- The only thing genuinely needing a home is the ingredient dictionary: roughly
+  400–600 entries.
+
+The dictionary therefore ships as a **versioned JSON file in the repository**.
+Beyond avoiding premature infrastructure, this is a better fit for what the
+dictionary actually is: curated reference data whose changes should be reviewed
+in a diff. A JSON file gets that for free.
+
+Note the template does ship Prisma + SQLite for **Shopify session storage**. That
+stays as-is — it is the template's own concern, not an application database, and
+fighting it would be pointless churn.
+
+**Supabase is the intended choice when a database is needed**, which is
+sub-project 2, when reaction history introduces real user data. The reasons hold —
+Postgres for the relational ingredient graph, database-enforced row-level security
+for health-adjacent data, and storage with hard delete for the skin photographs in
+sub-project 3. But "we will need it later" is a weaker justification than building
+it now would imply, and choosing a database against anticipated rather than actual
+requirements is how projects acquire infrastructure they do not use.
+
+The schema in this document is therefore **retained as the design for
+sub-project 2**, not as work to be built now. It is annotated accordingly.
+
+### No queue infrastructure
+
+The workload is 95 extractions once, then roughly one per new product. That is not
+a message-broker problem — a broker such as RabbitMQ is built for thousands of
+messages per second and would cost more to operate than the work it carries.
+
+- **Bulk run:** the Anthropic **Batch API**, which *is* a managed async queue —
+  50% cheaper, poll for results, no infrastructure.
+- **Per-product path (sub-project 2):** Shopify requires a 200 response to
+  webhooks within 5 seconds, so the work must be deferred — but "deferred" means
+  a row in a table claimed with `SELECT … FOR UPDATE SKIP LOCKED`, not a broker.
 
 ---
 
@@ -201,6 +239,13 @@ Any consumer of this data must branch on it.
 ---
 
 ## Database schema
+
+> ⚠️ **Not built in this sub-project.** Per "Database: deferred" above, the
+> ingredient dictionary ships as a versioned JSON file and no application database
+> is provisioned. This schema is retained as the **approved design for
+> sub-project 2**, when reaction history introduces real user data. It is recorded
+> here so the JSON dictionary's shape is chosen to migrate cleanly into it — the
+> JSON structure in the implementation plan mirrors these tables deliberately.
 
 ### Reference tables
 
