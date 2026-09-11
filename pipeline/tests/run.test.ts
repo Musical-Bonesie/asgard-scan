@@ -1,0 +1,150 @@
+import { describe, expect, test, vi } from "vitest";
+import {
+  mapWithConcurrency,
+  processProduct,
+  reevaluateCandidates,
+} from "../src/run";
+import type { Dictionary } from "../src/dictionary";
+
+const DICT: Dictionary = {
+  version: 1,
+  entries: [
+    { inci_name: "Aqua", common_name: null, synonyms: [], flags: [] },
+    { inci_name: "Glycerin", common_name: null, synonyms: [], flags: [] },
+    { inci_name: "Tocopherol", common_name: null, synonyms: [], flags: [] },
+  ],
+};
+
+const PRODUCT = {
+  id: "gid://shopify/Product/1",
+  title: "Test Serum",
+  vendor: "Test Brand",
+  descriptionHtml: "<p>Ingredients: Aqua, Glycerin, Tocopherol</p>",
+};
+
+function deps(classification: string, confidence: number) {
+  return {
+    dictionary: DICT,
+    classify: vi.fn().mockResolvedValue({
+      classification,
+      reasoning: "",
+      confidence,
+    }),
+    extract: vi.fn().mockResolvedValue({
+      ingredients: [
+        { raw: "Aqua", canonical: "Aqua", position: 0 },
+        { raw: "Glycerin", canonical: "Glycerin", position: 1 },
+        { raw: "Tocopherol", canonical: "Tocopherol", position: 2 },
+      ],
+      confidence,
+      notes: "",
+    }),
+  };
+}
+
+describe("processProduct", () => {
+  test("marks a clean full list as approved", async () => {
+    const candidate = await processProduct(deps("full_list", 0.95), PRODUCT);
+    expect(candidate.status).toBe("approved");
+    expect(candidate.reasons).toEqual([]);
+  });
+
+  test("routes key_ingredients to pending review", async () => {
+    const candidate = await processProduct(
+      deps("key_ingredients", 0.99),
+      PRODUCT,
+    );
+    expect(candidate.status).toBe("pending");
+    expect(candidate.reasons.join(" ")).toMatch(/key_ingredients/i);
+  });
+
+  test("routes low confidence to pending review", async () => {
+    const candidate = await processProduct(deps("full_list", 0.4), PRODUCT);
+    expect(candidate.status).toBe("pending");
+  });
+
+  test("skips the extract call entirely when there is no ingredient data", async () => {
+    const d = deps("none", 1);
+    const candidate = await processProduct(d, PRODUCT);
+    expect(d.extract).not.toHaveBeenCalled();
+    expect(candidate.status).toBe("pending");
+  });
+
+  test("carries the stripped description for the reviewer", async () => {
+    const candidate = await processProduct(deps("full_list", 0.95), PRODUCT);
+    expect(candidate.rawText).toBe("Ingredients: Aqua, Glycerin, Tocopherol");
+  });
+});
+
+describe("reevaluateCandidates", () => {
+  const base = {
+    productGid: "gid://shopify/Product/1",
+    productTitle: "T",
+    vendor: "V",
+    rawText: "x",
+    classification: "full_list" as const,
+    proposedList: [
+      { raw: "Aqua", canonical: "Aqua", position: 0 },
+      { raw: "Glycerin", canonical: "Glycerin", position: 1 },
+      { raw: "Tocopherol", canonical: "Tocopherol", position: 2 },
+    ],
+    confidence: 0.95,
+    reasons: ["unrecognised ingredients: Tocopherol"],
+    status: "pending" as const,
+    reviewedAt: null,
+  };
+
+  test("promotes a candidate once the dictionary covers its ingredients", () => {
+    const [result] = reevaluateCandidates([base], DICT);
+    expect(result.status).toBe("approved");
+    expect(result.reasons).toEqual([]);
+  });
+
+  test("leaves an already-reviewed candidate alone", () => {
+    // A human decision outranks the automated bar.
+    const rejected = { ...base, status: "rejected" as const };
+    const [result] = reevaluateCandidates([rejected], DICT);
+    expect(result.status).toBe("rejected");
+  });
+
+  test("keeps a candidate pending when the dictionary still lacks an ingredient", () => {
+    const withUnknown = {
+      ...base,
+      proposedList: [
+        ...base.proposedList,
+        { raw: "Unobtainium", canonical: "Unobtainium", position: 3 },
+      ],
+    };
+    const [result] = reevaluateCandidates([withUnknown], DICT);
+    expect(result.status).toBe("pending");
+    expect(result.reasons.join(" ")).toMatch(/Unobtainium/);
+  });
+});
+
+describe("mapWithConcurrency", () => {
+  test("processes every item", async () => {
+    const result = await mapWithConcurrency([1, 2, 3, 4, 5], 2, async (n) => n * 2);
+    expect(result).toEqual([2, 4, 6, 8, 10]);
+  });
+
+  test("never exceeds the concurrency limit", async () => {
+    let active = 0;
+    let peak = 0;
+    await mapWithConcurrency(Array.from({ length: 20 }, (_, i) => i), 5, async (n) => {
+      active += 1;
+      peak = Math.max(peak, active);
+      await new Promise((r) => setTimeout(r, 5));
+      active -= 1;
+      return n;
+    });
+    expect(peak).toBeLessThanOrEqual(5);
+  });
+
+  test("preserves input order in the output", async () => {
+    const result = await mapWithConcurrency([3, 1, 2], 3, async (n) => {
+      await new Promise((r) => setTimeout(r, n * 10));
+      return n;
+    });
+    expect(result).toEqual([3, 1, 2]);
+  });
+});
