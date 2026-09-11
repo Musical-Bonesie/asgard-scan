@@ -4,11 +4,13 @@ import {
   parseLimit,
   processAll,
   processProduct,
+  publishApproved,
   reevaluateCandidates,
   selectProductsToProcess,
 } from "../src/run";
 import type { Candidate } from "../src/candidates";
 import type { Dictionary } from "../src/dictionary";
+import type { GraphQLClient } from "../src/shopify";
 
 const DICT: Dictionary = {
   version: 1,
@@ -96,6 +98,7 @@ describe("reevaluateCandidates", () => {
     reasons: ["unrecognised ingredients: Tocopherol"],
     status: "pending" as const,
     reviewedAt: null,
+    publishedAt: null,
   };
 
   test("promotes a candidate once the dictionary covers its ingredients", () => {
@@ -246,6 +249,7 @@ describe("selectProductsToProcess", () => {
     reasons: [],
     status: "rejected",
     reviewedAt: "2026-01-01T00:00:00.000Z",
+    publishedAt: null,
   };
 
   test("skips a product whose stored candidate has already been reviewed", () => {
@@ -259,6 +263,7 @@ describe("selectProductsToProcess", () => {
       productGid: pendingProduct.id,
       status: "pending",
       reviewedAt: null,
+      publishedAt: null,
     };
     const result = selectProductsToProcess([pendingProduct], [storedPending]);
     expect(result).toEqual([pendingProduct]);
@@ -275,11 +280,195 @@ describe("selectProductsToProcess", () => {
       productGid: pendingProduct.id,
       status: "pending",
       reviewedAt: null,
+      publishedAt: null,
     };
     const result = selectProductsToProcess(
       [reviewedProduct, pendingProduct, newProduct],
       [storedBase, storedPending],
     );
     expect(result.map((p) => p.id)).toEqual([pendingProduct.id, newProduct.id]);
+  });
+
+  test("skips a product whose stored candidate has already been published, even if never reviewed", () => {
+    const publishedProduct = {
+      id: "gid://shopify/Product/4",
+      title: "Published",
+      vendor: "V",
+      descriptionHtml: "",
+    };
+    const storedPublished: Candidate = {
+      ...storedBase,
+      productGid: publishedProduct.id,
+      status: "approved",
+      reviewedAt: null,
+      publishedAt: "2026-01-02T00:00:00.000Z",
+    };
+    const result = selectProductsToProcess([publishedProduct], [storedPublished]);
+    expect(result).toEqual([]);
+  });
+});
+
+describe("publishApproved", () => {
+  function makeCandidate(overrides: Partial<Candidate> = {}): Candidate {
+    return {
+      productGid: "gid://shopify/Product/1",
+      productTitle: "Test Serum",
+      vendor: "Test Brand",
+      rawText: "Ingredients: Aqua",
+      classification: "full_list",
+      proposedList: [{ raw: "Aqua", canonical: "Aqua", position: 0 }],
+      confidence: 0.95,
+      reasons: [],
+      status: "approved",
+      reviewedAt: null,
+      publishedAt: null,
+      ...overrides,
+    };
+  }
+
+  function fakeClient(
+    impl: (query: string, variables?: Record<string, unknown>) => Promise<any>,
+  ): GraphQLClient {
+    return { request: vi.fn(impl) };
+  }
+
+  test("publishes only approved, unpublished candidates and stamps publishedAt with now()", async () => {
+    const approved = makeCandidate();
+    const pending = makeCandidate({
+      productGid: "gid://shopify/Product/2",
+      status: "pending",
+    });
+    const client = fakeClient(async () => ({
+      metafieldsSet: { metafields: [], userErrors: [] },
+    }));
+
+    const result = await publishApproved(
+      client,
+      [approved, pending],
+      () => "2026-09-11T00:00:00.000Z",
+    );
+
+    const published = result.candidates.find(
+      (c) => c.productGid === approved.productGid,
+    )!;
+    expect(published.publishedAt).toBe("2026-09-11T00:00:00.000Z");
+    expect(result.published).toBe(1);
+  });
+
+  test("skips pending, rejected, and already-published candidates without making a request for them", async () => {
+    const pending = makeCandidate({
+      productGid: "gid://shopify/Product/1",
+      status: "pending",
+    });
+    const rejected = makeCandidate({
+      productGid: "gid://shopify/Product/2",
+      status: "rejected",
+    });
+    const alreadyPublished = makeCandidate({
+      productGid: "gid://shopify/Product/3",
+      status: "approved",
+      publishedAt: "2026-01-01T00:00:00.000Z",
+    });
+    const client = fakeClient(async () => ({
+      metafieldsSet: { metafields: [], userErrors: [] },
+    }));
+
+    const result = await publishApproved(
+      client,
+      [pending, rejected, alreadyPublished],
+      () => "2026-09-11T00:00:00.000Z",
+    );
+
+    expect(client.request).not.toHaveBeenCalled();
+    expect(result.published).toBe(0);
+    expect(result.candidates).toEqual([pending, rejected, alreadyPublished]);
+  });
+
+  test("writes an auto-accepted candidate (reviewedAt null) without inci_reviewed_at", async () => {
+    const approved = makeCandidate({ reviewedAt: null });
+    let sentMetafields: any[] = [];
+    const client = fakeClient(async (_query, variables) => {
+      sentMetafields = variables!.metafields as any[];
+      return { metafieldsSet: { metafields: [], userErrors: [] } };
+    });
+
+    await publishApproved(client, [approved], () => "2026-09-11T00:00:00.000Z");
+
+    expect(sentMetafields.map((m) => m.key).sort()).toEqual(
+      ["inci_confidence", "inci_list", "inci_source"].sort(),
+    );
+  });
+
+  test("one product's write failing leaves it unpublished, records the failure, and still publishes the others", async () => {
+    const failing = makeCandidate({
+      productGid: "gid://shopify/Product/1",
+      productTitle: "Failing Product",
+    });
+    const succeeding = makeCandidate({
+      productGid: "gid://shopify/Product/2",
+      productTitle: "Succeeding Product",
+    });
+
+    const client = fakeClient(async (_query, variables) => {
+      const metafields = variables!.metafields as any[];
+      if (metafields.some((m) => m.ownerId === failing.productGid)) {
+        return {
+          metafieldsSet: {
+            metafields: [],
+            userErrors: [{ field: ["metafields"], message: "boom", code: "INVALID" }],
+          },
+        };
+      }
+      return { metafieldsSet: { metafields: [], userErrors: [] } };
+    });
+
+    const result = await publishApproved(
+      client,
+      [failing, succeeding],
+      () => "2026-09-11T00:00:00.000Z",
+    );
+
+    const failedCandidate = result.candidates.find(
+      (c) => c.productGid === failing.productGid,
+    )!;
+    const succeededCandidate = result.candidates.find(
+      (c) => c.productGid === succeeding.productGid,
+    )!;
+    expect(failedCandidate.publishedAt).toBeNull();
+    expect(succeededCandidate.publishedAt).toBe("2026-09-11T00:00:00.000Z");
+    expect(result.published).toBe(1);
+    expect(result.failures).toHaveLength(1);
+    expect(result.failures[0].productGid).toBe(failing.productGid);
+    expect(result.failures[0].productTitle).toBe("Failing Product");
+    expect(result.failures[0].error).toMatch(/boom/);
+  });
+
+  test("returns the full candidate list in the same order and length as the input", async () => {
+    const a = makeCandidate({ productGid: "gid://shopify/Product/1" });
+    const b = makeCandidate({ productGid: "gid://shopify/Product/2", status: "pending" });
+    const c = makeCandidate({ productGid: "gid://shopify/Product/3" });
+    const client = fakeClient(async () => ({
+      metafieldsSet: { metafields: [], userErrors: [] },
+    }));
+
+    const result = await publishApproved(client, [a, b, c], () => "now");
+
+    expect(result.candidates.map((x) => x.productGid)).toEqual([
+      a.productGid,
+      b.productGid,
+      c.productGid,
+    ]);
+  });
+
+  test("makes one writeMetafields call per product, not one big batched call", async () => {
+    const a = makeCandidate({ productGid: "gid://shopify/Product/1" });
+    const b = makeCandidate({ productGid: "gid://shopify/Product/2" });
+    const client = fakeClient(async () => ({
+      metafieldsSet: { metafields: [], userErrors: [] },
+    }));
+
+    await publishApproved(client, [a, b], () => "now");
+
+    expect(client.request).toHaveBeenCalledTimes(2);
   });
 });

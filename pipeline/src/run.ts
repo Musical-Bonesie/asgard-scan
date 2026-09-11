@@ -12,8 +12,11 @@ import {
 import { loadDictionary, type Dictionary } from "./dictionary";
 import { extractIngredients } from "./extract";
 import {
+  buildMetafieldWrites,
   createAdminClient,
+  writeMetafields,
   fetchAllProducts,
+  type GraphQLClient,
   type ShopifyProduct,
 } from "./shopify";
 import { stripHtml } from "./strip-html";
@@ -72,6 +75,7 @@ export async function processProduct(
     reasons: decision.reasons,
     status: decision.accepted ? "approved" : "pending",
     reviewedAt: null,
+    publishedAt: null,
   };
 }
 
@@ -213,6 +217,109 @@ export async function reevaluateMain(): Promise<void> {
   );
 }
 
+export interface PublishFailure {
+  productGid: string;
+  productTitle: string;
+  /** error.message, never the raw error object — callers must not leak secrets. */
+  error: string;
+}
+
+export interface PublishResult {
+  /** Full input list, updated, in the same order. Never drops a candidate. */
+  candidates: Candidate[];
+  published: number;
+  failures: PublishFailure[];
+}
+
+/**
+ * Write every approved-but-unpublished candidate's metafields to Shopify.
+ *
+ * One `writeMetafields` call per product, deliberately not batched together:
+ * metafieldsSet is atomic per call, so one call per product makes failure
+ * isolation exact — a bad product affects only itself, and every other
+ * product still gets written and stamped. At this catalogue's size (under
+ * 100 products) the extra calls stay well within rate limits, and the
+ * client already retries on throttling.
+ *
+ * Never touches a pending or rejected candidate, and never re-publishes one
+ * that already has a publishedAt — this is the only path that sets it, so
+ * re-running is always safe to repeat.
+ */
+export async function publishApproved(
+  client: GraphQLClient,
+  candidates: Candidate[],
+  now: () => string,
+): Promise<PublishResult> {
+  const failures: PublishFailure[] = [];
+  let published = 0;
+  const results: Candidate[] = [];
+
+  // Sequential by design: publishing is not on the hot path like extraction
+  // is, and going one at a time keeps us well clear of Shopify's rate limit
+  // regardless of catalogue size, with no need to tune a concurrency limit.
+  for (const candidate of candidates) {
+    if (candidate.status !== "approved" || candidate.publishedAt !== null) {
+      results.push(candidate);
+      continue;
+    }
+
+    const writes = buildMetafieldWrites(candidate.productGid, {
+      ingredients: candidate.proposedList,
+      classification: candidate.classification,
+      confidence: candidate.confidence,
+      reviewedAt: candidate.reviewedAt,
+    });
+
+    try {
+      await writeMetafields(client, writes);
+      published += 1;
+      results.push({ ...candidate, publishedAt: now() });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      failures.push({
+        productGid: candidate.productGid,
+        productTitle: candidate.productTitle,
+        error: message,
+      });
+      results.push(candidate);
+    }
+  }
+
+  return { candidates: results, published, failures };
+}
+
+export async function publishMain(): Promise<void> {
+  config({ path: ENV_PATH });
+
+  const shop = process.env.SHOPIFY_SHOP_DOMAIN;
+  const shopToken = process.env.SHOPIFY_ADMIN_TOKEN;
+
+  if (!shop || !shopToken) {
+    throw new Error("Missing env: SHOPIFY_SHOP_DOMAIN, SHOPIFY_ADMIN_TOKEN");
+  }
+
+  const admin = createAdminClient(shop, shopToken);
+  const stored = loadCandidates(CANDIDATES_PATH);
+
+  const { candidates, published, failures } = await publishApproved(
+    admin,
+    stored,
+    () => new Date().toISOString(),
+  );
+  saveCandidates(CANDIDATES_PATH, candidates);
+
+  const stillPending = candidates.filter((c) => c.status === "pending").length;
+
+  console.log(`Published ${published} candidate(s) to Shopify.`);
+  if (failures.length > 0) {
+    console.log(`${failures.length} failed and were left unpublished:`);
+    for (const failure of failures) {
+      console.log(`  - ${failure.productTitle}: ${failure.error}`);
+    }
+  }
+  console.log(`${stillPending} candidate(s) still awaiting review at /app/review.`);
+}
+
 /**
  * Parse PIPELINE_LIMIT: only a bare positive integer (after trimming) caps
  * how many products main() processes; everything else means "process
@@ -233,24 +340,30 @@ export function parseLimit(raw: string | undefined): number | undefined {
 
 /**
  * Drop products whose STORED candidate has already been reviewed by a
- * human (reviewedAt !== null).
+ * human (reviewedAt !== null) or already published to Shopify
+ * (publishedAt !== null).
  *
  * upsertCandidate replaces by productGid, so re-running extraction against
  * an already-reviewed product would silently overwrite a human's decision
  * (e.g. a rejection) with a fresh auto-evaluation and reset reviewedAt to
  * null — the exact thing reevaluateCandidates's "a human decision outranks
- * the bar" invariant forbids — and re-pay model cost for no benefit. A
- * product with no stored candidate, or one still pending, is processed
- * normally.
+ * the bar" invariant forbids — and re-pay model cost for no benefit. The
+ * same applies to a published candidate: re-extracting it would reset
+ * publishedAt to null in the local store while Shopify still holds the old
+ * write, and re-pay model cost for a product that's already done. A
+ * product with no stored candidate, or one still pending and unpublished,
+ * is processed normally.
  */
 export function selectProductsToProcess(
   products: ShopifyProduct[],
   stored: Candidate[],
 ): ShopifyProduct[] {
-  const reviewed = new Set(
-    stored.filter((c) => c.reviewedAt !== null).map((c) => c.productGid),
+  const done = new Set(
+    stored
+      .filter((c) => c.reviewedAt !== null || c.publishedAt !== null)
+      .map((c) => c.productGid),
   );
-  return products.filter((p) => !reviewed.has(p.id));
+  return products.filter((p) => !done.has(p.id));
 }
 
 async function main(): Promise<void> {
@@ -330,12 +443,19 @@ async function main(): Promise<void> {
       console.log(`  - ${failure.product.title}: ${failure.error}`);
     }
   }
-  console.log(`Review them at /app/review — nothing has been written to Shopify yet.`);
+  console.log(
+    `Nothing has been written to Shopify yet. Run "npm run pipeline:publish" to ` +
+      `write the auto-accepted products; the rest need review at /app/review.`,
+  );
 }
 
 // Only run when executed directly, so tests can import this module freely.
 if (process.argv[1]?.endsWith("run.ts")) {
-  const entry = process.argv.includes("--reevaluate") ? reevaluateMain : main;
+  const entry = process.argv.includes("--reevaluate")
+    ? reevaluateMain
+    : process.argv.includes("--publish")
+      ? publishMain
+      : main;
   entry().catch((error) => {
     console.error(error);
     process.exit(1);

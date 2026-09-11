@@ -6,7 +6,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "pipeline:extract": "tsx src/run.ts",
-    "pipeline:reevaluate": "tsx src/run.ts --reevaluate"
+    "pipeline:reevaluate": "tsx src/run.ts --reevaluate",
+    "pipeline:publish": "tsx src/run.ts --publish"
   },
   "devDependencies": {
     "@types/node": "^22.20.2",
