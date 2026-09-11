@@ -651,6 +651,64 @@ describe("publishApproved", () => {
     ]);
   });
 
+  test("writes inci_list in position order end to end, even when the stored array is out of order (M9)", async () => {
+    const approved = makeCandidate({
+      proposedList: [
+        { raw: "Tocopherol", canonical: "Tocopherol", position: 3 },
+        { raw: "Aqua", canonical: "Aqua", position: 0 },
+        { raw: "Citral", canonical: "Citral", position: 4 },
+        { raw: "Glycerin", canonical: "Glycerin", position: 1 },
+        { raw: "Niacinamide", canonical: "Niacinamide", position: 2 },
+      ],
+    });
+    let sentMetafields: any[] = [];
+    const client = fakeClient(async (_query, variables) => {
+      sentMetafields = variables!.metafields as any[];
+      return { metafieldsSet: { metafields: [], userErrors: [] } };
+    });
+
+    const result = await publishApproved(client, [approved], () => "now");
+
+    expect(result.published).toBe(1);
+    const inciList = sentMetafields.find((m) => m.key === "inci_list");
+    expect(JSON.parse(inciList.value)).toEqual([
+      "Aqua",
+      "Glycerin",
+      "Niacinamide",
+      "Tocopherol",
+      "Citral",
+    ]);
+    // Written together with its source marker, in the same call.
+    expect(sentMetafields.find((m) => m.key === "inci_source").value).toBe("full_list");
+  });
+
+  test("an approved none or empty-list candidate is refused in isolation, writing nothing for it (I6)", async () => {
+    const none = makeCandidate({
+      productGid: "gid://shopify/Product/1",
+      productTitle: "No data",
+      classification: "none",
+      proposedList: [],
+    });
+    const empty = makeCandidate({
+      productGid: "gid://shopify/Product/2",
+      productTitle: "Empty list",
+      proposedList: [],
+    });
+    const good = makeCandidate({ productGid: "gid://shopify/Product/3" });
+    const client = fakeClient(async () => ({
+      metafieldsSet: { metafields: [], userErrors: [] },
+    }));
+
+    const result = await publishApproved(client, [none, empty, good], () => "now");
+
+    expect(client.request).toHaveBeenCalledTimes(1);
+    expect(result.published).toBe(1);
+    expect(result.failures.map((f) => f.productTitle)).toEqual(["No data", "Empty list"]);
+    expect(result.candidates[0].publishedAt).toBeNull();
+    expect(result.candidates[1].publishedAt).toBeNull();
+    expect(result.candidates[2].publishedAt).toBe("now");
+  });
+
   test("makes one writeMetafields call per product, not one big batched call", async () => {
     const a = makeCandidate({ productGid: "gid://shopify/Product/1" });
     const b = makeCandidate({ productGid: "gid://shopify/Product/2" });

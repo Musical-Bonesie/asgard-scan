@@ -40,10 +40,33 @@ export interface BuildParams {
   reviewedAt: string | null;
 }
 
+/**
+ * The four asgard.* writes for one product, which must always be sent
+ * together (see chunkMetafields).
+ *
+ * Throws — never returns a partial or empty write set — for a product that
+ * has no list to publish: classification "none" is not an inci_source value
+ * and the spec writes no metafields for such products, and an empty
+ * inci_list would read as "contains nothing". Callers record the throw as a
+ * per-product failure, so this guards both pipeline:publish and the review
+ * UI's approve action.
+ */
 export function buildMetafieldWrites(
   productGid: string,
   params: BuildParams,
 ): MetafieldWrite[] {
+  if (params.classification === "none") {
+    throw new Error(
+      `refusing to write metafields for ${productGid}: classification is "none" ` +
+        `(no ingredient data) — reject this candidate instead of approving it`,
+    );
+  }
+  if (!Array.isArray(params.ingredients) || params.ingredients.length === 0) {
+    throw new Error(
+      `refusing to write metafields for ${productGid}: the ingredient list is empty`,
+    );
+  }
+
   const ordered = [...params.ingredients].sort(
     (a, b) => a.position - b.position,
   );
@@ -68,7 +91,8 @@ export function buildMetafieldWrites(
       ...base,
       key: "inci_confidence",
       type: "number_decimal",
-      value: String(params.confidence),
+      // The spec defines inci_confidence as 0.00–1.00: always two decimals.
+      value: params.confidence.toFixed(2),
     },
   ];
 

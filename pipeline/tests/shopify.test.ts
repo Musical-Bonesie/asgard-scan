@@ -59,6 +59,63 @@ describe("buildMetafieldWrites", () => {
     );
   });
 
+  test.each([
+    [0.9, "0.90"],
+    [1, "1.00"],
+    [0, "0.00"],
+    [0.873, "0.87"],
+  ])("writes inci_confidence %s with exactly two decimals as %j (spec: 0.00–1.00)", (confidence, expected) => {
+    const w = buildMetafieldWrites(GID, {
+      ingredients: [{ raw: "Aqua", canonical: "Aqua", position: 0 }],
+      classification: "full_list",
+      confidence,
+      reviewedAt: null,
+    });
+    const write = w.find((x) => x.key === "inci_confidence")!;
+    expect(write.type).toBe("number_decimal");
+    expect(write.value).toBe(expected);
+  });
+
+  test("throws for a none classification — the spec writes no metafields for these (I6)", () => {
+    expect(() =>
+      buildMetafieldWrites(GID, {
+        ingredients: [{ raw: "Aqua", canonical: "Aqua", position: 0 }],
+        classification: "none",
+        confidence: 1,
+        reviewedAt: "2026-08-17T10:00:00Z",
+      }),
+    ).toThrow(/none/);
+  });
+
+  test("throws for an empty ingredient list rather than writing inci_list: [] (I6)", () => {
+    expect(() =>
+      buildMetafieldWrites(GID, {
+        ingredients: [],
+        classification: "full_list",
+        confidence: 0.95,
+        reviewedAt: "2026-08-17T10:00:00Z",
+      }),
+    ).toThrow(/empty/);
+  });
+
+  test("orders inci_list by position, never by array order", () => {
+    const w = buildMetafieldWrites(GID, {
+      ingredients: [
+        { raw: "Glycerin", canonical: "Glycerin", position: 1 },
+        { raw: "Tocopherol", canonical: "Tocopherol", position: 2 },
+        { raw: "Aqua", canonical: "Aqua", position: 0 },
+      ],
+      classification: "full_list",
+      confidence: 0.95,
+      reviewedAt: null,
+    });
+    expect(JSON.parse(w.find((x) => x.key === "inci_list")!.value)).toEqual([
+      "Aqua",
+      "Glycerin",
+      "Tocopherol",
+    ]);
+  });
+
   test("omits inci_reviewed_at entirely when reviewedAt is null (auto-accepted, unreviewed)", () => {
     const unreviewed = buildMetafieldWrites(GID, {
       ingredients: [{ raw: "Aqua", canonical: "Aqua", position: 0 }],
