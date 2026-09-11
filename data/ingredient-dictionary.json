@@ -1,0 +1,305 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "inci_name": "Aqua",
+      "common_name": "Water",
+      "synonyms": ["Water", "Eau", "Aqua/Water/Eau", "Aqua (Water)"],
+      "flags": []
+    },
+    {
+      "inci_name": "Tocopherol",
+      "common_name": "Vitamin E",
+      "synonyms": ["Vitamin E", "Tocopherol (Vitamin E)"],
+      "flags": []
+    },
+    {
+      "inci_name": "Amyl Cinnamal",
+      "common_name": null,
+      "synonyms": [],
+      "flags": [
+        {
+          "flag_type": "eu_fragrance_allergen",
+          "source": "EU Cosmetics Regulation 1223/2009 Annex III"
+        }
+      ]
+    },
+    {
+      "inci_name": "Benzyl Alcohol",
+      "common_name": null,
+      "synonyms": [],
+      "flags": [
+        {
+          "flag_type": "eu_fragrance_allergen",
+          "source": "EU Cosmetics Regulation 1223/2009 Annex III"
+        }
+      ]
+    },
+    {
+      "inci_name": "Cinnamyl Alcohol",
+      "common_name": null,
+      "synonyms": [],
+      "flags": [
+        {
+          "flag_type": "eu_fragrance_allergen",
+          "source": "EU Cosmetics Regulation 1223/2009 Annex III"
+        }
+      ]
+    },
+    {
+      "inci_name": "Citral",
+      "common_name": null,
+      "synonyms": [],
+      "flags": [
+        {
+          "flag_type": "eu_fragrance_allergen",
+          "source": "EU Cosmetics Regulation 1223/2009 Annex III"
+        }
+      ]
+    },
+    {
+      "inci_name": "Eugenol",
+      "common_name": null,
+      "synonyms": [],
+      "flags": [
+        {
+          "flag_type": "eu_fragrance_allergen",
+          "source": "EU Cosmetics Regulation 1223/2009 Annex III"
+        }
+      ]
+    },
+    {
+      "inci_name": "Hydroxycitronellal",
+      "common_name": null,
+      "synonyms": [],
+      "flags": [
+        {
+          "flag_type": "eu_fragrance_allergen",
+          "source": "EU Cosmetics Regulation 1223/2009 Annex III"
+        }
+      ]
+    },
+    {
+      "inci_name": "Isoeugenol",
+      "common_name": null,
+      "synonyms": [],
+      "flags": [
+        {
+          "flag_type": "eu_fragrance_allergen",
+          "source": "EU Cosmetics Regulation 1223/2009 Annex III"
+        }
+      ]
+    },
+    {
+      "inci_name": "Amylcinnamyl Alcohol",
+      "common_name": null,
+      "synonyms": [],
+      "flags": [
+        {
+          "flag_type": "eu_fragrance_allergen",
+          "source": "EU Cosmetics Regulation 1223/2009 Annex III"
+        }
+      ]
+    },
+    {
+      "inci_name": "Benzyl Salicylate",
+      "common_name": null,
+      "synonyms": [],
+      "flags": [
+        {
+          "flag_type": "eu_fragrance_allergen",
+          "source": "EU Cosmetics Regulation 1223/2009 Annex III"
+        }
+      ]
+    },
+    {
+      "inci_name": "Cinnamal",
+      "common_name": null,
+      "synonyms": [],
+      "flags": [
+        {
+          "flag_type": "eu_fragrance_allergen",
+          "source": "EU Cosmetics Regulation 1223/2009 Annex III"
+        }
+      ]
+    },
+    {
+      "inci_name": "Coumarin",
+      "common_name": null,
+      "synonyms": [],
+      "flags": [
+        {
+          "flag_type": "eu_fragrance_allergen",
+          "source": "EU Cosmetics Regulation 1223/2009 Annex III"
+        }
+      ]
+    },
+    {
+      "inci_name": "Geraniol",
+      "common_name": null,
+      "synonyms": [],
+      "flags": [
+        {
+          "flag_type": "eu_fragrance_allergen",
+          "source": "EU Cosmetics Regulation 1223/2009 Annex III"
+        }
+      ]
+    },
+    {
+      "inci_name": "Hydroxyisohexyl 3-Cyclohexene Carboxaldehyde",
+      "common_name": null,
+      "synonyms": ["HICC", "Lyral"],
+      "flags": [
+        {
+          "flag_type": "eu_fragrance_allergen",
+          "source": "EU Cosmetics Regulation 1223/2009 Annex III",
+          "notes": "Now prohibited in EU cosmetics, but may still appear in non-EU products."
+        }
+      ]
+    },
+    {
+      "inci_name": "Anise Alcohol",
+      "common_name": null,
+      "synonyms": ["Anisyl Alcohol"],
+      "flags": [
+        {
+          "flag_type": "eu_fragrance_allergen",
+          "source": "EU Cosmetics Regulation 1223/2009 Annex III"
+        }
+      ]
+    },
+    {
+      "inci_name": "Benzyl Cinnamate",
+      "common_name": null,
+      "synonyms": [],
+      "flags": [
+        {
+          "flag_type": "eu_fragrance_allergen",
+          "source": "EU Cosmetics Regulation 1223/2009 Annex III"
+        }
+      ]
+    },
+    {
+      "inci_name": "Farnesol",
+      "common_name": null,
+      "synonyms": [],
+      "flags": [
+        {
+          "flag_type": "eu_fragrance_allergen",
+          "source": "EU Cosmetics Regulation 1223/2009 Annex III"
+        }
+      ]
+    },
+    {
+      "inci_name": "Butylphenyl Methylpropional",
+      "common_name": null,
+      "synonyms": ["Lilial"],
+      "flags": [
+        {
+          "flag_type": "eu_fragrance_allergen",
+          "source": "EU Cosmetics Regulation 1223/2009 Annex III",
+          "notes": "Now prohibited in EU cosmetics, but may still appear in non-EU products."
+        }
+      ]
+    },
+    {
+      "inci_name": "Linalool",
+      "common_name": null,
+      "synonyms": [],
+      "flags": [
+        {
+          "flag_type": "eu_fragrance_allergen",
+          "source": "EU Cosmetics Regulation 1223/2009 Annex III"
+        }
+      ]
+    },
+    {
+      "inci_name": "Benzyl Benzoate",
+      "common_name": null,
+      "synonyms": [],
+      "flags": [
+        {
+          "flag_type": "eu_fragrance_allergen",
+          "source": "EU Cosmetics Regulation 1223/2009 Annex III"
+        }
+      ]
+    },
+    {
+      "inci_name": "Citronellol",
+      "common_name": null,
+      "synonyms": [],
+      "flags": [
+        {
+          "flag_type": "eu_fragrance_allergen",
+          "source": "EU Cosmetics Regulation 1223/2009 Annex III"
+        }
+      ]
+    },
+    {
+      "inci_name": "Hexyl Cinnamal",
+      "common_name": null,
+      "synonyms": [],
+      "flags": [
+        {
+          "flag_type": "eu_fragrance_allergen",
+          "source": "EU Cosmetics Regulation 1223/2009 Annex III"
+        }
+      ]
+    },
+    {
+      "inci_name": "Limonene",
+      "common_name": null,
+      "synonyms": ["D-Limonene"],
+      "flags": [
+        {
+          "flag_type": "eu_fragrance_allergen",
+          "source": "EU Cosmetics Regulation 1223/2009 Annex III"
+        }
+      ]
+    },
+    {
+      "inci_name": "Methyl 2-Octynoate",
+      "common_name": null,
+      "synonyms": [],
+      "flags": [
+        {
+          "flag_type": "eu_fragrance_allergen",
+          "source": "EU Cosmetics Regulation 1223/2009 Annex III"
+        }
+      ]
+    },
+    {
+      "inci_name": "Alpha-Isomethyl Ionone",
+      "common_name": null,
+      "synonyms": [],
+      "flags": [
+        {
+          "flag_type": "eu_fragrance_allergen",
+          "source": "EU Cosmetics Regulation 1223/2009 Annex III"
+        }
+      ]
+    },
+    {
+      "inci_name": "Evernia Prunastri Extract",
+      "common_name": "Oakmoss Extract",
+      "synonyms": ["Oakmoss Extract"],
+      "flags": [
+        {
+          "flag_type": "eu_fragrance_allergen",
+          "source": "EU Cosmetics Regulation 1223/2009 Annex III"
+        }
+      ]
+    },
+    {
+      "inci_name": "Evernia Furfuracea Extract",
+      "common_name": "Treemoss Extract",
+      "synonyms": ["Treemoss Extract"],
+      "flags": [
+        {
+          "flag_type": "eu_fragrance_allergen",
+          "source": "EU Cosmetics Regulation 1223/2009 Annex III"
+        }
+      ]
+    }
+  ]
+}
