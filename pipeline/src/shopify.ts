@@ -136,7 +136,7 @@ export interface GraphQLClient {
   request(query: string, variables?: Record<string, unknown>): Promise<any>;
 }
 
-const MAX_RETRIES = 5;
+export const MAX_RETRIES = 5;
 
 const realSleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 

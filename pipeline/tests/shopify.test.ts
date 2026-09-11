@@ -3,6 +3,7 @@ import {
   buildMetafieldWrites,
   chunkMetafields,
   createAdminClient,
+  MAX_RETRIES,
   METAFIELD_NAMESPACE,
   SHOPIFY_API_VERSION,
 } from "../src/shopify";
@@ -164,7 +165,7 @@ describe("createAdminClient retry behavior", () => {
 
     await expect(client.request("query {}")).rejects.toThrow(/retries|retry/i);
     // MAX_RETRIES retries plus the initial attempt.
-    expect(fetchImpl.mock.calls.length).toBeGreaterThan(1);
+    expect(fetchImpl).toHaveBeenCalledTimes(MAX_RETRIES + 1);
   });
 
   test("rejects immediately, without retrying, on a non-throttle GraphQL error", async () => {
