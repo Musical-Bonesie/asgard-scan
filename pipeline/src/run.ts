@@ -98,6 +98,74 @@ export async function mapWithConcurrency<T, R>(
   return results;
 }
 
+export interface ProcessFailure {
+  product: ShopifyProduct;
+  /** error.message, never the raw error object — callers must not leak secrets. */
+  error: string;
+}
+
+export interface ProcessAllResult {
+  /** In input order. Excludes any product that failed. */
+  candidates: Candidate[];
+  failures: ProcessFailure[];
+}
+
+export interface ProcessAllProgress {
+  index: number;
+  total: number;
+  product: ShopifyProduct;
+  candidate?: Candidate;
+  error?: string;
+}
+
+/**
+ * Process every product, isolating per-product failures.
+ *
+ * mapWithConcurrency's Promise.all rejects the whole batch on the first
+ * failure: with ~95 products x 2 model calls, a single transient 529,
+ * network blip, truncation, or refusal would otherwise lose every
+ * already-completed (and already-paid-for) candidate along with it. Each
+ * product's error is caught here instead, recorded in `failures`, and the
+ * batch continues — so a re-run only needs to retry what actually failed.
+ */
+export async function processAll(
+  deps: ProcessDeps,
+  products: ShopifyProduct[],
+  concurrency: number,
+  onProgress?: (progress: ProcessAllProgress) => void,
+): Promise<ProcessAllResult> {
+  type Outcome =
+    | { ok: true; candidate: Candidate }
+    | { ok: false; failure: ProcessFailure };
+
+  let done = 0;
+  const outcomes = await mapWithConcurrency<ShopifyProduct, Outcome>(
+    products,
+    concurrency,
+    async (product) => {
+      try {
+        const candidate = await processProduct(deps, product);
+        done += 1;
+        onProgress?.({ index: done, total: products.length, product, candidate });
+        return { ok: true, candidate };
+      } catch (error) {
+        done += 1;
+        const message = error instanceof Error ? error.message : String(error);
+        onProgress?.({ index: done, total: products.length, product, error: message });
+        return { ok: false, failure: { product, error: message } };
+      }
+    },
+  );
+
+  const candidates: Candidate[] = [];
+  const failures: ProcessFailure[] = [];
+  for (const outcome of outcomes) {
+    if (outcome.ok) candidates.push(outcome.candidate);
+    else failures.push(outcome.failure);
+  }
+  return { candidates, failures };
+}
+
 /**
  * Re-run ONLY the accept bar against a grown dictionary, reusing the cached
  * extractions.
@@ -146,16 +214,43 @@ export async function reevaluateMain(): Promise<void> {
 }
 
 /**
- * Read PIPELINE_LIMIT from the environment: a positive integer caps how many
- * products main() processes, for cheap dry runs against a real store without
- * editing source. Anything invalid or absent means "process everything" —
- * this is a convenience knob, not a correctness gate, so it fails open.
+ * Parse PIPELINE_LIMIT: only a bare positive integer (after trimming) caps
+ * how many products main() processes; everything else means "process
+ * everything".
+ *
+ * Deliberately stricter than Number.parseInt, which parses a leading prefix
+ * and silently accepts the rest: "2.5" -> 2, "10abc" -> 10, "1e3" -> 1. Each
+ * of those would run the wrong number of paid model calls without any
+ * indication that the value was actually malformed.
  */
-function readPipelineLimit(): number | null {
-  const raw = process.env.PIPELINE_LIMIT;
-  if (!raw) return null;
-  const n = Number.parseInt(raw, 10);
-  return Number.isInteger(n) && n > 0 ? n : null;
+export function parseLimit(raw: string | undefined): number | undefined {
+  if (raw === undefined) return undefined;
+  const trimmed = raw.trim();
+  if (!/^\d+$/.test(trimmed)) return undefined;
+  const n = Number.parseInt(trimmed, 10);
+  return n > 0 ? n : undefined;
+}
+
+/**
+ * Drop products whose STORED candidate has already been reviewed by a
+ * human (reviewedAt !== null).
+ *
+ * upsertCandidate replaces by productGid, so re-running extraction against
+ * an already-reviewed product would silently overwrite a human's decision
+ * (e.g. a rejection) with a fresh auto-evaluation and reset reviewedAt to
+ * null — the exact thing reevaluateCandidates's "a human decision outranks
+ * the bar" invariant forbids — and re-pay model cost for no benefit. A
+ * product with no stored candidate, or one still pending, is processed
+ * normally.
+ */
+export function selectProductsToProcess(
+  products: ShopifyProduct[],
+  stored: Candidate[],
+): ShopifyProduct[] {
+  const reviewed = new Set(
+    stored.filter((c) => c.reviewedAt !== null).map((c) => c.productGid),
+  );
+  return products.filter((p) => !reviewed.has(p.id));
 }
 
 async function main(): Promise<void> {
@@ -179,10 +274,19 @@ async function main(): Promise<void> {
   let products = await fetchAllProducts(admin);
   console.log(`${products.length} products`);
 
-  const limit = readPipelineLimit();
-  if (limit !== null && limit < products.length) {
+  const limit = parseLimit(process.env.PIPELINE_LIMIT);
+  if (limit !== undefined && limit < products.length) {
     console.log(`PIPELINE_LIMIT=${limit}: processing only the first ${limit}.`);
     products = products.slice(0, limit);
+  }
+
+  let stored = loadCandidates(CANDIDATES_PATH);
+  const toProcess = selectProductsToProcess(products, stored);
+  const alreadyReviewed = products.length - toProcess.length;
+  if (alreadyReviewed > 0) {
+    console.log(
+      `Skipping ${alreadyReviewed} already-reviewed product(s) — human decisions are never overwritten.`,
+    );
   }
 
   const deps: ProcessDeps = {
@@ -192,21 +296,23 @@ async function main(): Promise<void> {
       extractIngredients(anthropic, text, classification),
   };
 
-  let done = 0;
-  const candidates = await mapWithConcurrency(
-    products,
+  const { candidates, failures } = await processAll(
+    deps,
+    toProcess,
     CONCURRENCY,
-    async (product) => {
-      const candidate = await processProduct(deps, product);
-      done += 1;
-      console.log(
-        `[${done}/${products.length}] ${candidate.status.padEnd(8)} ${candidate.productTitle}`,
-      );
-      return candidate;
+    (progress) => {
+      if (progress.candidate) {
+        console.log(
+          `[${progress.index}/${progress.total}] ${progress.candidate.status.padEnd(8)} ${progress.product.title}`,
+        );
+      } else {
+        console.log(
+          `[${progress.index}/${progress.total}] FAILED   ${progress.product.title}: ${progress.error}`,
+        );
+      }
     },
   );
 
-  let stored = loadCandidates(CANDIDATES_PATH);
   for (const candidate of candidates) {
     stored = upsertCandidate(stored, candidate);
   }
@@ -216,6 +322,14 @@ async function main(): Promise<void> {
   console.log(
     `\nDone. ${approved} auto-accepted, ${candidates.length - approved} need review.`,
   );
+  if (failures.length > 0) {
+    console.log(
+      `${failures.length} product(s) failed and were NOT saved — re-run to retry them:`,
+    );
+    for (const failure of failures) {
+      console.log(`  - ${failure.product.title}: ${failure.error}`);
+    }
+  }
   console.log(`Review them at /app/review — nothing has been written to Shopify yet.`);
 }
 

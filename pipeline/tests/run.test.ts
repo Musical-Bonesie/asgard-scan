@@ -1,9 +1,13 @@
 import { describe, expect, test, vi } from "vitest";
 import {
   mapWithConcurrency,
+  parseLimit,
+  processAll,
   processProduct,
   reevaluateCandidates,
+  selectProductsToProcess,
 } from "../src/run";
+import type { Candidate } from "../src/candidates";
 import type { Dictionary } from "../src/dictionary";
 
 const DICT: Dictionary = {
@@ -146,5 +150,136 @@ describe("mapWithConcurrency", () => {
       return n;
     });
     expect(result).toEqual([3, 1, 2]);
+  });
+});
+
+describe("parseLimit", () => {
+  test.each([
+    [undefined, undefined],
+    ["", undefined],
+    ["0", undefined],
+    ["-3", undefined],
+    ["abc", undefined],
+    ["2.5", undefined],
+    ["10abc", undefined],
+    ["1e3", undefined],
+    ["5", 5],
+    [" 7 ", 7],
+  ] as const)("parseLimit(%j) -> %j", (input, expected) => {
+    expect(parseLimit(input)).toBe(expected);
+  });
+});
+
+describe("processAll", () => {
+  const makeProduct = (n: number) => ({
+    id: `gid://shopify/Product/${n}`,
+    title: `Product ${n}`,
+    vendor: "Test Brand",
+    descriptionHtml: `<p>Ingredients: Aqua, Glycerin, Tocopherol (marker ${n})</p>`,
+  });
+
+  test("isolates one product's failure, keeps the rest as candidates, and reports it", async () => {
+    const products = [makeProduct(1), makeProduct(2), makeProduct(3)];
+
+    const classify = vi.fn().mockImplementation(async (text: string) => {
+      if (text.includes("(marker 2)")) {
+        throw new Error("simulated 529 overload");
+      }
+      return { classification: "full_list", reasoning: "", confidence: 0.95 };
+    });
+    const extract = vi.fn().mockResolvedValue({
+      ingredients: [
+        { raw: "Aqua", canonical: "Aqua", position: 0 },
+        { raw: "Glycerin", canonical: "Glycerin", position: 1 },
+        { raw: "Tocopherol", canonical: "Tocopherol", position: 2 },
+      ],
+      confidence: 0.95,
+      notes: "",
+    });
+
+    const result = await processAll(
+      { dictionary: DICT, classify, extract },
+      products,
+      3,
+    );
+
+    // The middle product failed; the other two still come back as
+    // candidates, in their original input order.
+    expect(result.candidates.map((c) => c.productGid)).toEqual([
+      "gid://shopify/Product/1",
+      "gid://shopify/Product/3",
+    ]);
+    expect(result.failures).toHaveLength(1);
+    expect(result.failures[0].product.title).toBe("Product 2");
+    expect(result.failures[0].error).toMatch(/simulated 529 overload/);
+  });
+});
+
+describe("selectProductsToProcess", () => {
+  const reviewedProduct = {
+    id: "gid://shopify/Product/1",
+    title: "Reviewed",
+    vendor: "V",
+    descriptionHtml: "",
+  };
+  const pendingProduct = {
+    id: "gid://shopify/Product/2",
+    title: "Pending",
+    vendor: "V",
+    descriptionHtml: "",
+  };
+  const newProduct = {
+    id: "gid://shopify/Product/3",
+    title: "New",
+    vendor: "V",
+    descriptionHtml: "",
+  };
+
+  const storedBase: Candidate = {
+    productGid: reviewedProduct.id,
+    productTitle: "Reviewed",
+    vendor: "V",
+    rawText: "",
+    classification: "full_list",
+    proposedList: [],
+    confidence: 0.5,
+    reasons: [],
+    status: "rejected",
+    reviewedAt: "2026-01-01T00:00:00.000Z",
+  };
+
+  test("skips a product whose stored candidate has already been reviewed", () => {
+    const result = selectProductsToProcess([reviewedProduct], [storedBase]);
+    expect(result).toEqual([]);
+  });
+
+  test("processes a product whose stored candidate is pending with reviewedAt null", () => {
+    const storedPending: Candidate = {
+      ...storedBase,
+      productGid: pendingProduct.id,
+      status: "pending",
+      reviewedAt: null,
+    };
+    const result = selectProductsToProcess([pendingProduct], [storedPending]);
+    expect(result).toEqual([pendingProduct]);
+  });
+
+  test("processes a product with no stored candidate at all", () => {
+    const result = selectProductsToProcess([newProduct], [storedBase]);
+    expect(result).toEqual([newProduct]);
+  });
+
+  test("filters a mixed list, preserving order", () => {
+    const storedPending: Candidate = {
+      ...storedBase,
+      productGid: pendingProduct.id,
+      status: "pending",
+      reviewedAt: null,
+    };
+    const result = selectProductsToProcess(
+      [reviewedProduct, pendingProduct, newProduct],
+      [storedBase, storedPending],
+    );
+    expect(result.map((p) => p.id)).toEqual([pendingProduct.id, newProduct.id]);
   });
 });

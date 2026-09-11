@@ -24,12 +24,23 @@ describe("createAnthropicClient", () => {
     expect(result).toBe('{"ok":true}');
   });
 
-  test("throws when the entire fallback chain refuses", async () => {
-    const { client } = fakeClient({ stop_reason: "refusal", content: [] });
+  test("throws a refusal-specific error when the entire fallback chain refuses", async () => {
+    // A real text block is present here, so this only passes because the
+    // stop_reason check runs before the text block is read — if that check
+    // were deleted, this response would still yield a (wrong) successful
+    // result instead of failing, unlike the previous version of this test
+    // where an empty `content` made any deleted check fail for an unrelated
+    // reason ("no text block").
+    const { client } = fakeClient({
+      stop_reason: "refusal",
+      content: [{ type: "text", text: "I can't help with that." }],
+    });
 
     const anthropic = createAnthropicClient("key", client);
 
-    await expect(anthropic.complete("prompt", SCHEMA)).rejects.toThrow();
+    await expect(anthropic.complete("prompt", SCHEMA)).rejects.toThrow(
+      /declin|refus/i,
+    );
   });
 
   test("throws a truncation-specific error on stop_reason max_tokens", async () => {
