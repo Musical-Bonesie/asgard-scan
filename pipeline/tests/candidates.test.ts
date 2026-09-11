@@ -1,11 +1,13 @@
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import {
   loadCandidates,
+  mergeWithDisk,
   pendingCandidates,
   saveCandidates,
+  saveCandidatesMerged,
   upsertCandidate,
   type Candidate,
 } from "../src/candidates";
@@ -32,6 +34,8 @@ function candidate(overrides: Partial<Candidate> = {}): Candidate {
     status: "pending",
     reviewedAt: null,
     publishedAt: null,
+    notes: "",
+    reasoning: "",
     ...overrides,
   };
 }
@@ -98,4 +102,122 @@ describe("candidate store", () => {
       loadCandidates(file)[0].proposedList.map((i) => i.canonical),
     ).toEqual(["Aqua", "Glycerin", "Tocopherol"]);
   });
+
+  test("loads a candidates file written before notes and reasoning existed with both backfilled to empty strings", () => {
+    const legacy = candidate() as unknown as Record<string, unknown>;
+    delete legacy.notes;
+    delete legacy.reasoning;
+    writeFileSync(file, JSON.stringify([legacy]), "utf8");
+
+    const loaded = loadCandidates(file);
+    expect(loaded[0].notes).toBe("");
+    expect(loaded[0].reasoning).toBe("");
+  });
+
+  test("round-trips notes and reasoning", () => {
+    saveCandidates(file, [
+      candidate({ notes: "used the Ingredients: list", reasoning: "labelled INCI list" }),
+    ]);
+    const [loaded] = loadCandidates(file);
+    expect(loaded.notes).toBe("used the Ingredients: list");
+    expect(loaded.reasoning).toBe("labelled INCI list");
+  });
 });
+
+describe("atomic save with backup", () => {
+  test("the first save writes a valid file and no backup (there was nothing to back up)", () => {
+    saveCandidates(file, [candidate()]);
+    expect(loadCandidates(file)).toHaveLength(1);
+    expect(existsSync(`${file}.bak`)).toBe(false);
+  });
+
+  test("a later save leaves a valid file and a .bak holding the previous contents", () => {
+    saveCandidates(file, [candidate({ status: "rejected", reviewedAt: "2026-09-01T00:00:00.000Z" })]);
+    const previous = readFileSync(file, "utf8");
+
+    saveCandidates(file, [candidate(), candidate({ productGid: "gid://shopify/Product/2" })]);
+
+    expect(loadCandidates(file)).toHaveLength(2);
+    expect(readFileSync(`${file}.bak`, "utf8")).toBe(previous);
+    expect(loadCandidates(`${file}.bak`)[0].status).toBe("rejected");
+  });
+
+  test("leaves no temporary file behind", () => {
+    saveCandidates(file, [candidate()]);
+    saveCandidates(file, [candidate()]);
+    expect(readdirSync(dir).sort()).toEqual(["candidates.json", "candidates.json.bak"]);
+  });
+
+  test("creates the directory when it does not exist", () => {
+    const nested = join(dir, "data", "candidates.json");
+    saveCandidates(nested, [candidate()]);
+    expect(loadCandidates(nested)).toHaveLength(1);
+  });
+});
+
+describe("mergeWithDisk", () => {
+  const T = "2026-09-11T10:00:00.000Z";
+
+  test("keeps an on-disk human decision that arrived mid-run over the stale in-memory record", () => {
+    // main() loaded this candidate as pending, re-extracted it for ~10
+    // minutes, and meanwhile a reviewer rejected it in the UI.
+    const onDisk = [candidate({ status: "rejected", reviewedAt: T })];
+    const inMemory = [candidate({ status: "approved", confidence: 0.99 })];
+
+    const [merged] = mergeWithDisk(onDisk, inMemory);
+    expect(merged.status).toBe("rejected");
+    expect(merged.reviewedAt).toBe(T);
+  });
+
+  test("keeps an on-disk publishedAt that arrived mid-run", () => {
+    const onDisk = [candidate({ status: "approved", reviewedAt: T, publishedAt: T })];
+    const inMemory = [candidate({ status: "pending" })];
+
+    const [merged] = mergeWithDisk(onDisk, inMemory);
+    expect(merged.publishedAt).toBe(T);
+    expect(merged.status).toBe("approved");
+  });
+
+  test("otherwise the in-memory record wins", () => {
+    const onDisk = [candidate({ status: "pending", confidence: 0.5 })];
+    const inMemory = [candidate({ status: "approved", confidence: 0.95 })];
+    expect(mergeWithDisk(onDisk, inMemory)[0].confidence).toBe(0.95);
+  });
+
+  test("the in-memory record wins when it carries the publish (publishMain's own stamp)", () => {
+    const onDisk = [candidate({ status: "approved" })];
+    const inMemory = [candidate({ status: "approved", publishedAt: T })];
+    expect(mergeWithDisk(onDisk, inMemory)[0].publishedAt).toBe(T);
+  });
+
+  test("keeps records that exist on only one side, in-memory order first", () => {
+    const onDisk = [
+      candidate({ productGid: "gid://shopify/Product/9", productTitle: "Disk only" }),
+      candidate({ productGid: "gid://shopify/Product/1" }),
+    ];
+    const inMemory = [
+      candidate({ productGid: "gid://shopify/Product/1" }),
+      candidate({ productGid: "gid://shopify/Product/2", productTitle: "Memory only" }),
+    ];
+    expect(mergeWithDisk(onDisk, inMemory).map((c) => c.productGid)).toEqual([
+      "gid://shopify/Product/1",
+      "gid://shopify/Product/2",
+      "gid://shopify/Product/9",
+    ]);
+  });
+
+  test("saveCandidatesMerged re-reads the file just before saving", () => {
+    // What was on disk when a long run started...
+    saveCandidates(file, [candidate()]);
+    const loadedAtStart = loadCandidates(file);
+    // ...a reviewer approves it mid-run...
+    saveCandidates(file, [candidate({ status: "approved", reviewedAt: T, publishedAt: T })]);
+    // ...and the run saves its now-stale copy.
+    saveCandidatesMerged(file, loadedAtStart);
+
+    const [final] = loadCandidates(file);
+    expect(final.reviewedAt).toBe(T);
+    expect(final.publishedAt).toBe(T);
+  });
+});
+

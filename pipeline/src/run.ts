@@ -5,7 +5,7 @@ import { createAnthropicClient } from "./anthropic-client";
 import { classifyDescription } from "./classify";
 import {
   loadCandidates,
-  saveCandidates,
+  saveCandidatesMerged,
   upsertCandidate,
   type Candidate,
 } from "./candidates";
@@ -77,6 +77,8 @@ export async function processProduct(
     status: decision.accepted ? "approved" : "pending",
     reviewedAt: null,
     publishedAt: null,
+    notes: extracted.notes,
+    reasoning: classified.reasoning,
   };
 }
 
@@ -172,20 +174,36 @@ export async function processAll(
 }
 
 /**
- * Re-run ONLY the accept bar against a grown dictionary, reusing the cached
- * extractions.
+ * Re-run ONLY the accept bar against the current dictionary (and threshold),
+ * reusing the cached extractions.
  *
  * This is the spec's stage 3. Growing the dictionary is an iterative loop, and
  * re-extracting on every pass would re-pay the full model cost to re-test a
- * pure function. Already-reviewed candidates are left alone — a human decision
- * outranks the bar.
+ * pure function.
+ *
+ * Every candidate the bar decided is re-decided, in BOTH directions: an
+ * auto-approved candidate that has not been published yet is demoted back to
+ * pending if it no longer passes (a raised CONFIDENCE_THRESHOLD, a removed
+ * bad synonym) — otherwise pipeline:publish would still write it against the
+ * owner's intent. Left alone, because they are no longer the bar's to decide:
+ * - a human-reviewed candidate (reviewedAt set) — a human decision outranks
+ *   the bar;
+ * - a published candidate (publishedAt set) — Shopify already holds it;
+ * - a rejected candidate — only a human ever rejects, so it is a human
+ *   decision even if a hand-edited file lost its reviewedAt.
  */
 export function reevaluateCandidates(
   candidates: Candidate[],
   dictionary: Dictionary,
 ): Candidate[] {
   return candidates.map((candidate) => {
-    if (candidate.status !== "pending") return candidate;
+    if (
+      candidate.reviewedAt !== null ||
+      candidate.publishedAt !== null ||
+      candidate.status === "rejected"
+    ) {
+      return candidate;
+    }
 
     const decision = evaluateAcceptance({
       classification: candidate.classification,
@@ -203,19 +221,49 @@ export function reevaluateCandidates(
   });
 }
 
+export interface ReevaluationSummary {
+  /** pending -> approved */
+  promoted: number;
+  /** approved -> pending (an unpublished auto-approval that no longer passes) */
+  demoted: number;
+  pendingBefore: number;
+  pendingAfter: number;
+}
+
+/** Compare statuses index by index (reevaluateCandidates preserves order). */
+export function summarizeReevaluation(
+  before: Candidate[],
+  after: Candidate[],
+): ReevaluationSummary {
+  let promoted = 0;
+  let demoted = 0;
+  before.forEach((b, i) => {
+    const a = after[i];
+    if (b.status === "pending" && a.status === "approved") promoted += 1;
+    if (b.status === "approved" && a.status === "pending") demoted += 1;
+  });
+  return {
+    promoted,
+    demoted,
+    pendingBefore: before.filter((c) => c.status === "pending").length,
+    pendingAfter: after.filter((c) => c.status === "pending").length,
+  };
+}
+
 export async function reevaluateMain(): Promise<void> {
   const dictionary = loadDictionary(DICTIONARY_PATH);
   const before = loadCandidates(CANDIDATES_PATH);
   const after = reevaluateCandidates(before, dictionary);
-  saveCandidates(CANDIDATES_PATH, after);
+  saveCandidatesMerged(CANDIDATES_PATH, after);
 
-  const pendingBefore = before.filter((c) => c.status === "pending").length;
-  const pendingAfter = after.filter((c) => c.status === "pending").length;
+  const summary = summarizeReevaluation(before, after);
   console.log(
     `Re-evaluated ${before.length} candidates against dictionary v${dictionary.version}.`,
   );
   console.log(
-    `Pending: ${pendingBefore} -> ${pendingAfter} (${pendingBefore - pendingAfter} newly auto-accepted). No model calls made.`,
+    `Pending: ${summary.pendingBefore} -> ${summary.pendingAfter} ` +
+      `(${summary.promoted} newly auto-accepted, ${summary.demoted} demoted back to review). ` +
+      `No model calls made.`,
   );
 }
 
@@ -307,7 +355,8 @@ export async function publishMain(): Promise<void> {
     stored,
     () => new Date().toISOString(),
   );
-  saveCandidates(CANDIDATES_PATH, candidates);
+  // Merged: a review-UI decision saved while this ran must not be reverted.
+  saveCandidatesMerged(CANDIDATES_PATH, candidates);
 
   const stillPending = candidates.filter((c) => c.status === "pending").length;
 
@@ -367,6 +416,31 @@ export function selectProductsToProcess(
   return products.filter((p) => !done.has(p.id));
 }
 
+/**
+ * Of the products selectProductsToProcess skips (reviewed or published),
+ * those whose description has changed since their candidate was stored —
+ * compared as stripped text, the same form the candidate's rawText holds.
+ *
+ * Skipped products are never re-extracted, so without this a reformulation
+ * (a new ingredient, possibly an allergen) would go unnoticed while Shopify
+ * keeps serving the old list. Products still in play are not listed: they
+ * are re-extracted on this run anyway.
+ */
+export function findChangedSinceReview(
+  products: ShopifyProduct[],
+  stored: Candidate[],
+): ShopifyProduct[] {
+  const done = new Map(
+    stored
+      .filter((c) => c.reviewedAt !== null || c.publishedAt !== null)
+      .map((c) => [c.productGid, c]),
+  );
+  return products.filter((p) => {
+    const candidate = done.get(p.id);
+    return candidate !== undefined && stripHtml(p.descriptionHtml) !== candidate.rawText;
+  });
+}
+
 async function main(): Promise<void> {
   config({ path: ENV_PATH });
 
@@ -396,10 +470,25 @@ async function main(): Promise<void> {
 
   let stored = loadCandidates(CANDIDATES_PATH);
   const toProcess = selectProductsToProcess(products, stored);
-  const alreadyReviewed = products.length - toProcess.length;
-  if (alreadyReviewed > 0) {
+  const skipped = products.length - toProcess.length;
+  if (skipped > 0) {
     console.log(
-      `Skipping ${alreadyReviewed} already-reviewed product(s) — human decisions are never overwritten.`,
+      `Skipping ${skipped} product(s) already reviewed or published — ` +
+        `human decisions and published results are never overwritten.`,
+    );
+  }
+  const changed = findChangedSinceReview(products, stored);
+  if (changed.length > 0) {
+    console.log(
+      `\n!!! ${changed.length} skipped product(s) have a description that changed since ` +
+        `they were reviewed or published — Shopify still holds the OLD ingredient list:`,
+    );
+    for (const product of changed) {
+      console.log(`  - ${product.title} (${product.id})`);
+    }
+    console.log(
+      `To re-extract one, delete its entry from data/candidates.json and re-run ` +
+        `"npm run pipeline:extract" (see the plan's Task 12).\n`,
     );
   }
 
@@ -430,7 +519,9 @@ async function main(): Promise<void> {
   for (const candidate of candidates) {
     stored = upsertCandidate(stored, candidate);
   }
-  saveCandidates(CANDIDATES_PATH, stored);
+  // Merged: this run loaded the file ~10 minutes ago, and a review-UI
+  // decision saved since then must not be reverted.
+  saveCandidatesMerged(CANDIDATES_PATH, stored);
 
   const approved = candidates.filter((c) => c.status === "approved").length;
   console.log(

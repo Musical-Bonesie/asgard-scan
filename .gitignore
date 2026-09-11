@@ -31,5 +31,11 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# review-queue state, regenerable, may contain unreviewed extraction output
+# review-queue state: holds HUMAN REVIEW DECISIONS, which cannot be
+# regenerated, plus unreviewed extraction output. Not committed; every save
+# is atomic and keeps the previous version as candidates.json.bak — copy
+# that somewhere safe if the decisions matter to you.
 data/candidates.json
+data/candidates.json.bak
+# temp file of an in-progress atomic save (only left behind by a crash)
+data/.candidates.json.*.tmp

@@ -1,5 +1,6 @@
 import { describe, expect, test, vi } from "vitest";
 import {
+  findChangedSinceReview,
   mapWithConcurrency,
   parseLimit,
   processAll,
@@ -7,6 +8,7 @@ import {
   publishApproved,
   reevaluateCandidates,
   selectProductsToProcess,
+  summarizeReevaluation,
 } from "../src/run";
 import type { Candidate } from "../src/candidates";
 import type { Dictionary } from "../src/dictionary";
@@ -76,6 +78,39 @@ describe("processProduct", () => {
     expect(candidate.status).toBe("pending");
   });
 
+  test("carries the extractor's notes and the classifier's reasoning for the reviewer (I8)", async () => {
+    const d = deps("full_list", 0.95);
+    d.classify.mockResolvedValue({
+      classification: "full_list",
+      reasoning: "Labelled Ingredients: list led by Aqua",
+      confidence: 0.95,
+    });
+    d.extract.mockResolvedValue({
+      ingredients: [
+        { raw: "Aqua", canonical: "Aqua", position: 0 },
+        { raw: "Glycerin", canonical: "Glycerin", position: 1 },
+        { raw: "Tocopherol", canonical: "Tocopherol", position: 2 },
+      ],
+      confidence: 0.95,
+      notes: 'Used the "Ingredients:" list',
+    });
+    const candidate = await processProduct(d, PRODUCT);
+    expect(candidate.reasoning).toBe("Labelled Ingredients: list led by Aqua");
+    expect(candidate.notes).toBe('Used the "Ingredients:" list');
+  });
+
+  test("a none candidate keeps the classifier's reasoning and has empty notes", async () => {
+    const d = deps("none", 1);
+    d.classify.mockResolvedValue({
+      classification: "none",
+      reasoning: "No ingredient information",
+      confidence: 1,
+    });
+    const candidate = await processProduct(d, PRODUCT);
+    expect(candidate.reasoning).toBe("No ingredient information");
+    expect(candidate.notes).toBe("");
+  });
+
   test("carries the stripped description for the reviewer", async () => {
     const candidate = await processProduct(deps("full_list", 0.95), PRODUCT);
     expect(candidate.rawText).toBe("Ingredients: Aqua, Glycerin, Tocopherol");
@@ -131,7 +166,16 @@ describe("reevaluateCandidates", () => {
     status: "pending" as const,
     reviewedAt: null,
     publishedAt: null,
+    notes: "kept note",
+    reasoning: "kept reasoning",
   };
+
+  /** DICT without Tocopherol, e.g. after the owner removes a bad entry. */
+  const SHRUNK: Dictionary = {
+    version: 2,
+    entries: DICT.entries.filter((e) => e.inci_name !== "Tocopherol"),
+  };
+  const autoApproved = { ...base, reasons: [], status: "approved" as const };
 
   test("promotes a candidate once the dictionary covers its ingredients", () => {
     const [result] = reevaluateCandidates([base], DICT);
@@ -141,9 +185,46 @@ describe("reevaluateCandidates", () => {
 
   test("leaves an already-reviewed candidate alone", () => {
     // A human decision outranks the automated bar.
+    const rejected = {
+      ...base,
+      status: "rejected" as const,
+      reviewedAt: "2026-09-01T00:00:00.000Z",
+    };
+    const [result] = reevaluateCandidates([rejected], DICT);
+    expect(result).toBe(rejected);
+  });
+
+  test("never re-evaluates a rejected candidate, even one missing its reviewedAt", () => {
+    // Only a human ever sets "rejected" — the bar produces approved or
+    // pending — so a hand-edited file without reviewedAt is still a human
+    // decision and must not be overturned.
     const rejected = { ...base, status: "rejected" as const };
     const [result] = reevaluateCandidates([rejected], DICT);
-    expect(result.status).toBe("rejected");
+    expect(result).toBe(rejected);
+  });
+
+  test("demotes an auto-approved, unpublished candidate to pending when the dictionary loses an entry (I3)", () => {
+    const [result] = reevaluateCandidates([autoApproved], SHRUNK);
+    expect(result.status).toBe("pending");
+    expect(result.reasons.join(" ")).toMatch(/unrecognised ingredients: Tocopherol/);
+  });
+
+  test("leaves a published candidate untouched even if it would now fail the bar", () => {
+    const published = { ...autoApproved, publishedAt: "2026-09-02T00:00:00.000Z" };
+    const [result] = reevaluateCandidates([published], SHRUNK);
+    expect(result).toBe(published);
+  });
+
+  test("leaves a human-reviewed candidate untouched even if it would now fail the bar", () => {
+    const humanApproved = { ...autoApproved, reviewedAt: "2026-09-02T00:00:00.000Z" };
+    const [result] = reevaluateCandidates([humanApproved], SHRUNK);
+    expect(result).toBe(humanApproved);
+  });
+
+  test("preserves notes and reasoning", () => {
+    const [result] = reevaluateCandidates([base], DICT);
+    expect(result.notes).toBe("kept note");
+    expect(result.reasoning).toBe("kept reasoning");
   });
 
   test("keeps a candidate pending when the dictionary still lacks an ingredient", () => {
@@ -293,6 +374,8 @@ describe("selectProductsToProcess", () => {
     status: "rejected",
     reviewedAt: "2026-01-01T00:00:00.000Z",
     publishedAt: null,
+    notes: "",
+    reasoning: "",
   };
 
   test("skips a product whose stored candidate has already been reviewed", () => {
@@ -365,6 +448,8 @@ describe("publishApproved", () => {
       status: "approved",
       reviewedAt: null,
       publishedAt: null,
+      notes: "",
+      reasoning: "",
       ...overrides,
     };
   }
@@ -578,3 +663,99 @@ describe("publishApproved", () => {
     expect(client.request).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("summarizeReevaluation", () => {
+  const c = (gid: string, status: Candidate["status"]) =>
+    ({ productGid: gid, status }) as Candidate;
+
+  test("counts promotions and demotions separately", () => {
+    const before = [c("1", "pending"), c("2", "approved"), c("3", "pending"), c("4", "rejected")];
+    const after = [c("1", "approved"), c("2", "pending"), c("3", "pending"), c("4", "rejected")];
+    expect(summarizeReevaluation(before, after)).toEqual({
+      promoted: 1,
+      demoted: 1,
+      pendingBefore: 2,
+      pendingAfter: 2,
+    });
+  });
+});
+
+describe("findChangedSinceReview (I5)", () => {
+  function stored(overrides: Partial<Candidate>): Candidate {
+    return {
+      productGid: "gid://shopify/Product/1",
+      productTitle: "Stored title",
+      vendor: "V",
+      rawText: "Ingredients: Aqua, Glycerin",
+      classification: "full_list",
+      proposedList: [],
+      confidence: 0.95,
+      reasons: [],
+      status: "approved",
+      reviewedAt: "2026-09-01T00:00:00.000Z",
+      publishedAt: "2026-09-01T00:00:00.000Z",
+      notes: "",
+      reasoning: "",
+      ...overrides,
+    };
+  }
+  function product(id: number, descriptionHtml: string) {
+    return { id: `gid://shopify/Product/${id}`, title: `Product ${id}`, vendor: "V", descriptionHtml };
+  }
+
+  test("lists a reviewed product whose description changed since it was stored", () => {
+    const result = findChangedSinceReview(
+      [product(1, "<p>Ingredients: Aqua, Glycerin, Niacinamide</p>")],
+      [stored({})],
+    );
+    expect(result.map((p) => p.title)).toEqual(["Product 1"]);
+  });
+
+  test("lists a published, never-reviewed product whose description changed", () => {
+    const result = findChangedSinceReview(
+      [product(1, "<p>Reformulated: Aqua, Niacinamide</p>")],
+      [stored({ reviewedAt: null })],
+    );
+    expect(result).toHaveLength(1);
+  });
+
+  test("compares the STRIPPED text, so a markup-only edit is not a change", () => {
+    const result = findChangedSinceReview(
+      [product(1, "<div><strong>Ingredients:</strong>  Aqua, Glycerin&nbsp;</div>")],
+      [stored({})],
+    );
+    expect(result).toEqual([]);
+  });
+
+  test("ignores products that are not skipped (pending, unpublished) — they are re-extracted anyway", () => {
+    const result = findChangedSinceReview(
+      [product(1, "<p>Totally different</p>")],
+      [stored({ status: "pending", reviewedAt: null, publishedAt: null })],
+    );
+    expect(result).toEqual([]);
+  });
+
+  test("ignores products with no stored candidate", () => {
+    expect(findChangedSinceReview([product(2, "<p>New</p>")], [stored({})])).toEqual([]);
+  });
+
+  test("lists only the changed ones, in input order", () => {
+    const result = findChangedSinceReview(
+      [
+        product(3, "<p>changed three</p>"),
+        product(1, "<p>Ingredients: Aqua, Glycerin</p>"),
+        product(2, "<p>changed two</p>"),
+      ],
+      [
+        stored({}),
+        stored({ productGid: "gid://shopify/Product/2" }),
+        stored({ productGid: "gid://shopify/Product/3" }),
+      ],
+    );
+    expect(result.map((p) => p.id)).toEqual([
+      "gid://shopify/Product/3",
+      "gid://shopify/Product/2",
+    ]);
+  });
+});
+
