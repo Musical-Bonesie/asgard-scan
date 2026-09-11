@@ -4,11 +4,18 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "pipeline:extract": "tsx src/run.ts",
+    "pipeline:reevaluate": "tsx src/run.ts --reevaluate"
   },
   "devDependencies": {
     "@types/node": "^22.20.2",
+    "tsx": "^4.23.13",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.125.0",
+    "dotenv": "^17.4.2"
   }
 }
