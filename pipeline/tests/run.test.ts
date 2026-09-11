@@ -399,6 +399,24 @@ describe("publishApproved", () => {
     );
   });
 
+  test("writes a human-approved candidate (reviewedAt set) with all four metafields, including inci_reviewed_at", async () => {
+    const approved = makeCandidate({ reviewedAt: "2026-09-01T10:00:00Z" });
+    let sentMetafields: any[] = [];
+    const client = fakeClient(async (_query, variables) => {
+      sentMetafields = variables!.metafields as any[];
+      return { metafieldsSet: { metafields: [], userErrors: [] } };
+    });
+
+    await publishApproved(client, [approved], () => "2026-09-11T00:00:00.000Z");
+
+    expect(sentMetafields).toHaveLength(4);
+    expect(sentMetafields.map((m) => m.key).sort()).toEqual(
+      ["inci_confidence", "inci_list", "inci_reviewed_at", "inci_source"].sort(),
+    );
+    const reviewedAtWrite = sentMetafields.find((m) => m.key === "inci_reviewed_at");
+    expect(reviewedAtWrite.value).toBe("2026-09-01T10:00:00Z");
+  });
+
   test("one product's write failing leaves it unpublished, records the failure, and still publishes the others", async () => {
     const failing = makeCandidate({
       productGid: "gid://shopify/Product/1",
@@ -441,6 +459,51 @@ describe("publishApproved", () => {
     expect(result.failures[0].productGid).toBe(failing.productGid);
     expect(result.failures[0].productTitle).toBe("Failing Product");
     expect(result.failures[0].error).toMatch(/boom/);
+  });
+
+  test("a malformed candidate (e.g. hand-edited proposedList) between two valid ones fails in isolation without rejecting the whole publish", async () => {
+    const before = makeCandidate({
+      productGid: "gid://shopify/Product/1",
+      productTitle: "Before",
+    });
+    const malformed = makeCandidate({
+      productGid: "gid://shopify/Product/2",
+      productTitle: "Malformed",
+      // Simulates an operator hand-edit of candidates.json leaving
+      // proposedList null instead of an array.
+      proposedList: null as unknown as Candidate["proposedList"],
+    });
+    const after = makeCandidate({
+      productGid: "gid://shopify/Product/3",
+      productTitle: "After",
+    });
+    const client = fakeClient(async () => ({
+      metafieldsSet: { metafields: [], userErrors: [] },
+    }));
+
+    const result = await publishApproved(
+      client,
+      [before, malformed, after],
+      () => "2026-09-11T00:00:00.000Z",
+    );
+
+    const beforeCandidate = result.candidates.find(
+      (c) => c.productGid === before.productGid,
+    )!;
+    const malformedCandidate = result.candidates.find(
+      (c) => c.productGid === malformed.productGid,
+    )!;
+    const afterCandidate = result.candidates.find(
+      (c) => c.productGid === after.productGid,
+    )!;
+
+    expect(beforeCandidate.publishedAt).toBe("2026-09-11T00:00:00.000Z");
+    expect(afterCandidate.publishedAt).toBe("2026-09-11T00:00:00.000Z");
+    expect(malformedCandidate.publishedAt).toBeNull();
+    expect(result.published).toBe(2);
+    expect(result.failures).toHaveLength(1);
+    expect(result.failures[0].productGid).toBe(malformed.productGid);
+    expect(result.failures[0].productTitle).toBe("Malformed");
   });
 
   test("returns the full candidate list in the same order and length as the input", async () => {

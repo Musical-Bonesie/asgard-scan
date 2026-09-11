@@ -263,14 +263,13 @@ export async function publishApproved(
       continue;
     }
 
-    const writes = buildMetafieldWrites(candidate.productGid, {
-      ingredients: candidate.proposedList,
-      classification: candidate.classification,
-      confidence: candidate.confidence,
-      reviewedAt: candidate.reviewedAt,
-    });
-
     try {
+      const writes = buildMetafieldWrites(candidate.productGid, {
+        ingredients: candidate.proposedList,
+        classification: candidate.classification,
+        confidence: candidate.confidence,
+        reviewedAt: candidate.reviewedAt,
+      });
       await writeMetafields(client, writes);
       published += 1;
       results.push({ ...candidate, publishedAt: now() });
