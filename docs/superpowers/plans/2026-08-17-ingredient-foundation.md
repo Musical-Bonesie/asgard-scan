@@ -34,13 +34,25 @@ Task 4 puts the model call behind a `ClassifierClient` interface specifically so
 
 ---
 
+## Implementation notes
+
+The pipeline was built as a **self-contained package at `pipeline/`** — its own
+`package.json`, `vitest.config.ts`, and `tsconfig.json`. Run its scripts from
+inside `pipeline/` (e.g. `cd pipeline && npm run pipeline:extract`), not from
+the repo root. Two tasks were added beyond this plan's original scope: **Task
+10b** (publish approved candidates to Shopify) and **Task 10c** (a fixture
+accuracy check that scores the classifier against the hand-labelled set
+before any publish).
+
+---
+
 ## File Structure
 
 ```
 /                                        (repo root)
 ├── shopify.app.toml                     scaffolded — app config
-├── package.json                         scaffolded + pipeline scripts added
-├── vite.config.ts                       scaffolded; Vitest config added (Task 2)
+├── package.json                         scaffolded — root Shopify app only; the pipeline has its own package.json and scripts
+├── vite.config.ts                       scaffolded — the pipeline runs its own Vitest config from pipeline/, not this file
 ├── .env                                 gitignored — secrets
 ├── .env.sample                          committed template
 ├── app/                                 React Router app (scaffolded)
@@ -50,7 +62,11 @@ Task 4 puts the model call behind a `ClassifierClient` interface specifically so
 ├── data/
 │   ├── ingredient-dictionary.json       Task 6 — curated dictionary
 │   └── candidates.json                  Task 8 — review queue (gitignored)
-├── pipeline/
+├── pipeline/                            self-contained package — run its scripts from inside pipeline/
+│   ├── package.json                     own dependencies and pipeline:* scripts
+│   ├── vitest.config.ts                 own Vitest config
+│   ├── tsconfig.json                    own TypeScript config (@types/node, resolveJsonModule)
+│   ├── .env.sample                      committed template — copy to pipeline/.env for pipeline secrets
 │   ├── fixtures/
 │   │   └── labelled-products.json       Task 3 — hand-labelled test set
 │   ├── src/
@@ -62,7 +78,9 @@ Task 4 puts the model call behind a `ClassifierClient` interface specifically so
 │   │   ├── accept.ts                    Task 7 — auto-accept bar
 │   │   ├── candidates.ts                Task 8 — review queue store
 │   │   ├── shopify.ts                   Task 9 — catalogue read + metafield write
-│   │   └── run.ts                       Task 10 — orchestrator CLI
+│   │   ├── anthropic-client.ts          Task 10 — Claude API adapter
+│   │   ├── run.ts                       Task 10 — orchestrator CLI (extract / reevaluate / publish)
+│   │   └── evaluate.ts                  Task 10c — fixture accuracy check
 │   └── tests/                           one test file per src module
 └── docs/superpowers/{specs,plans}/
 ```
@@ -75,8 +93,8 @@ Each pipeline module has one responsibility and is independently testable. `stri
 
 **Files:**
 - Create: everything from the Shopify template at repo root
-- Modify: `.gitignore`
-- Create: `.env.sample`
+- Modify: `.gitignore` (already done — see Step 5)
+- Copy: `pipeline/.env.sample` → `pipeline/.env` (see Step 4; `pipeline/.env.sample` already exists, no root `.env.sample` is created)
 
 **Interfaces:**
 - Consumes: nothing
@@ -108,6 +126,10 @@ rsync -a --exclude='.git' /Users/signebone/Documents/projects/_scaffold/ ./
 rm -rf /Users/signebone/Documents/projects/_scaffold
 ```
 
+This rsync is safe: the pipeline lives in its own package at `pipeline/`,
+with its own `package.json`, so the scaffold's root `package.json` and
+`vite.config.ts` do not collide with anything the pipeline needs.
+
 - [ ] **Step 3: Verify it boots**
 
 ```bash
@@ -119,35 +141,38 @@ Expected: the CLI prints a preview URL and the app installs on your development 
 
 Stop the dev server with Ctrl-C once confirmed.
 
-- [ ] **Step 4: Add pipeline secrets to `.env.sample`**
+- [ ] **Step 4: Set up pipeline secrets**
 
-Create `.env.sample`:
-
-```
-# Shopify custom app Admin API access token (read_products, write_products)
-SHOPIFY_ADMIN_TOKEN=
-# Your store domain, e.g. asgard-beauty.myshopify.com
-SHOPIFY_SHOP_DOMAIN=
-# Anthropic API key for the extraction pipeline
-ANTHROPIC_API_KEY=
-```
-
-Copy it to `.env` and fill in real values. Confirm `.env` is gitignored:
+Pipeline secrets live in `pipeline/.env`, not a root `.env.sample` — the
+pipeline is a self-contained package that loads its own env file
+(`pipeline/src/run.ts` resolves `pipeline/.env` via a module-relative path,
+independent of the process cwd). `pipeline/.env.sample` already exists as
+the committed template; copy it and fill in real values:
 
 ```bash
-git check-ignore -v .env
+cp pipeline/.env.sample pipeline/.env
 ```
 
-Expected: prints a matching `.gitignore` rule. If it prints nothing, add `.env` to `.gitignore` before continuing.
+Confirm it's gitignored:
 
-- [ ] **Step 5: Ignore the candidates file**
-
-Append to `.gitignore`:
-
+```bash
+git check-ignore -v pipeline/.env
 ```
-# review queue state — regenerable, may contain unreviewed extraction output
-data/candidates.json
+
+Expected: prints a matching `.gitignore` rule (the root `.gitignore`'s
+`.env.*` pattern already covers it). If it prints nothing, add `.env` to
+`.gitignore` before continuing.
+
+- [ ] **Step 5: Ignore the candidates file — already done**
+
+`data/candidates.json` is already listed in the root `.gitignore`. Confirm
+rather than repeat:
+
+```bash
+git check-ignore -v data/candidates.json
 ```
+
+Expected: prints the matching `.gitignore` rule.
 
 - [ ] **Step 6: Commit**
 
@@ -2325,19 +2350,24 @@ export async function action({ request }: ActionFunctionArgs) {
   if (!candidate) return { ok: false, error: "candidate not found" };
 
   if (decision === "approve") {
-    const reviewedAt = new Date().toISOString();
+    // Stamp reviewedAt AND publishedAt with the same timestamp here: this
+    // write already puts the metafields on Shopify, so leaving publishedAt
+    // null would make pipeline:publish treat the product as unpublished and
+    // write it again.
+    const now = new Date().toISOString();
     const writes = buildMetafieldWrites(candidate.productGid, {
       ingredients: candidate.proposedList,
       classification: candidate.classification,
       confidence: candidate.confidence,
-      reviewedAt,
+      reviewedAt: now,
     });
     await writeMetafields(
       { request: (query, variables) => admin.graphql(query, { variables }).then((r) => r.json()).then((j) => j.data) },
       writes,
     );
     candidate.status = "approved";
-    candidate.reviewedAt = reviewedAt;
+    candidate.reviewedAt = now;
+    candidate.publishedAt = now;
   } else {
     candidate.status = "rejected";
     candidate.reviewedAt = new Date().toISOString();
@@ -2460,6 +2490,11 @@ export default function ReviewQueue() {
 }
 ```
 
+> Note: this UI currently has no list editing. If editing the proposed list
+> is ever added, the edited list must be saved into `proposedList` before
+> writing the metafields — otherwise `pipeline:publish` could later overwrite
+> a human's edit with the original machine proposal.
+
 - [ ] **Step 2: Add the nav link**
 
 In `app/routes/app.tsx`, inside the existing `<NavMenu>` element, add:
@@ -2499,6 +2534,9 @@ git commit -m "feat: admin review queue for pending extractions"
 - Consumes: everything
 - Produces: populated metafields and a grown dictionary
 
+Every pipeline command below runs from inside `pipeline/`
+(e.g. `cd pipeline && npm run pipeline:extract`), not from the repo root.
+
 - [ ] **Step 1: Create the metafield definitions in Shopify**
 
 Definitions give the metafields names and types in the Shopify admin UI. Run in the GraphQL app at `https://<your-shop>.myshopify.com/admin/apps/shopify-graphiql-app`, once per key:
@@ -2523,21 +2561,25 @@ Repeat for `inci_source` (`single_line_text_field`), `inci_confidence` (`number_
 
 - [ ] **Step 2: Dry-run against a handful of products first**
 
-Temporarily change `CONCURRENCY` to `2` and add `.slice(0, 5)` after `fetchAllProducts(admin)` in `pipeline/src/run.ts`. Then:
+Never edit source for a dry run — cap it with the `PIPELINE_LIMIT` env var instead:
+
+```bash
+PIPELINE_LIMIT=5 npm run pipeline:extract
+```
+
+Expected: 5 lines of output, each `approved` or `pending`. Inspect `data/candidates.json` (at the repo root — the pipeline reads and writes it via a path relative to `pipeline/`, not the process cwd) and confirm the ingredient lists match the product pages. **Nothing has been written to Shopify yet** — the pipeline only writes `candidates.json`.
+
+- [ ] **Step 3: Run the full catalogue**
 
 ```bash
 npm run pipeline:extract
 ```
 
-Expected: 5 lines of output, each `approved` or `pending`. Inspect `data/candidates.json` and confirm the ingredient lists match the product pages. **Nothing has been written to Shopify yet** — the pipeline only writes `candidates.json`.
-
-- [ ] **Step 3: Run the full catalogue**
-
-Remove the `.slice(0, 5)`, restore `CONCURRENCY` to `5`, and run again. Expect roughly 10 minutes and a summary line like `62 auto-accepted, 33 need review`.
+Expect roughly 10 minutes and a summary line like `62 auto-accepted, 33 need review`.
 
 - [ ] **Step 4: Grow the dictionary from the real corpus**
 
-List every ingredient the accept bar could not resolve:
+List every ingredient the accept bar could not resolve. Run this from the repo root, since `data/` lives there rather than inside `pipeline/`:
 
 ```bash
 node -e "
@@ -2567,11 +2609,33 @@ This re-runs only the accept bar against the cached extractions. **Use this, not
 
 Repeat steps 4–5 until the remaining pending items are genuine judgement calls rather than dictionary gaps.
 
-- [ ] **Step 6: Work the review queue**
+- [ ] **Step 6: Gate on the fixture accuracy check before publishing anything**
+
+```bash
+npm run pipeline:evaluate-fixtures
+```
+
+This exercises the real classifier against the hand-labelled fixtures and
+reports the confusion matrix. If it reports any `key_ingredients` fixture
+classified as `full_list`, **stop** — that is a partial list that would be
+written as if it were complete — and tune the classifier prompt before
+publishing anything.
+
+- [ ] **Step 7: Work the review queue**
 
 Open `/app/review` in the Shopify admin. For each candidate, check the proposed list against the original description and approve or reject. Approving writes the metafields immediately.
 
-- [ ] **Step 7: Verify metafields landed on a product**
+- [ ] **Step 8: Publish the auto-accepted candidates**
+
+```bash
+npm run pipeline:publish
+```
+
+This writes every approved-but-unpublished candidate's metafields to
+Shopify; the review queue handles the rest. Safe to re-run — it never
+touches a pending, rejected, or already-published candidate.
+
+- [ ] **Step 9: Verify metafields landed on a product**
 
 ```graphql
 query {
@@ -2586,7 +2650,7 @@ query {
 
 Expected: `inci_list` holds a JSON array in concentration order; `inci_source` says `full_list`.
 
-- [ ] **Step 8: Commit the grown dictionary**
+- [ ] **Step 10: Commit the grown dictionary**
 
 ```bash
 git add data/ingredient-dictionary.json
@@ -2599,8 +2663,10 @@ git commit -m "feat: grow ingredient dictionary from the live corpus"
 
 - [ ] Every product with recoverable ingredient data has `asgard.inci_list` populated in concentration order
 - [ ] Every populated product has `asgard.inci_source`, so no partial list can pass as complete
-- [ ] `npm test` passes
+- [ ] `cd pipeline && npm test` passes
 - [ ] The `key_ingredients` regression test in `pipeline/tests/accept.test.ts` passes — a "Key Ingredients" block is never auto-accepted
 - [ ] `data/ingredient-dictionary.json` is committed and covers the catalogue's common ingredients
+- [ ] `pipeline:evaluate-fixtures` reports no key_ingredients fixture classified as full_list
+- [ ] `pipeline:publish` reports 0 failures
 - [ ] `/app/review` shows an empty queue
 - [ ] No secrets are committed: `git log -p | grep -iE 'shpat_|sk-ant-'` returns nothing
