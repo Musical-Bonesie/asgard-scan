@@ -15,12 +15,12 @@ clinical — this gives cosmetic guidance, never diagnosis.
 
 ## Status
 
-Early. The design for the first sub-project is written and approved; implementation
-has not started.
+Sub-project 1's extraction pipeline is implemented and tested; the steps that
+need the store owner's Shopify Partner account and live API keys remain.
 
 | # | Sub-project | Status |
 | --- | --- | --- |
-| **1** | Ingredient data foundation | **Design approved** — [spec](docs/superpowers/specs/2026-08-15-ingredient-foundation-design.md) |
+| **1** | Ingredient data foundation | **Pipeline implemented** in [`pipeline/`](pipeline/) — classify, extract, auto-accept bar, review queue, publish to metafields. Remaining (owner-run): scaffold the Shopify app, build the admin review screen, first live run — Tasks 1, 11 and 12 of the [plan](docs/superpowers/plans/2026-08-17-ingredient-foundation.md). [Spec](docs/superpowers/specs/2026-08-15-ingredient-foundation-design.md) |
 | 2 | Ingredient comparison | Not started |
 | 3 | AI skin analyzer | Not started |
 | 4 | Native mobile app | Deferred — mobile web first |
@@ -28,13 +28,27 @@ has not started.
 Sub-projects 2 and 3 both depend on 1: neither works without structured ingredient
 data.
 
-## Planned stack
+The pipeline is a self-contained package; run everything from inside it:
 
-- **Shopify app** — theme app extension for the storefront, plus an admin surface
+```bash
+cd pipeline
+npm install
+npm test
+```
+
+## Stack
+
+- **Shopify app** (not yet scaffolded — plan Task 1) — theme app extension for
+  the storefront, plus an admin surface
 - **Shopify metafields** — source of truth for per-product INCI ingredient lists
-- **Supabase (Postgres)** — ingredient dictionary, and later user data under
-  row-level security
-- **Claude** — ingredient extraction and classification
+  (namespace `asgard`)
+- **Ingredient dictionary** — a versioned JSON file,
+  [`data/ingredient-dictionary.json`](data/ingredient-dictionary.json), with
+  synonyms and EU fragrance-allergen flags. No application database in
+  sub-project 1.
+- **Supabase (Postgres)** — arrives in sub-project 2, for reaction history and
+  other user data under row-level security
+- **Claude** — ingredient classification and extraction (`claude-opus-5`)
 
 **Identity comes from Shopify customer accounts. This app stores no passwords.**
 

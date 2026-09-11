@@ -481,7 +481,8 @@ async function main(): Promise<void> {
   if (changed.length > 0) {
     console.log(
       `\n!!! ${changed.length} skipped product(s) have a description that changed since ` +
-        `they were reviewed or published — Shopify still holds the OLD ingredient list:`,
+        `they were reviewed or published — their stored result, and any metafields ` +
+        `already on Shopify, reflect the OLD text:`,
     );
     for (const product of changed) {
       console.log(`  - ${product.title} (${product.id})`);

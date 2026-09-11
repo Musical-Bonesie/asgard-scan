@@ -16,7 +16,7 @@
 - **No user data is stored** anywhere in this sub-project. Extraction and review are admin-only.
 - **Metafields are the source of truth.** Anything else is a rebuildable projection.
 - **Metafield namespace is `asgard`.** Keys: `inci_list`, `inci_source`, `inci_confidence`, `inci_reviewed_at`.
-- **`metafieldsSet` accepts a maximum of 25 metafields per call** and is atomic — a single error persists nothing. Four metafields per product means **6 products per call**.
+- **`metafieldsSet` accepts a maximum of 25 metafields per call** and is atomic — a single error persists nothing. `pipeline:publish` makes **one call per product** (three or four metafields), so a product's writes are never split across calls and one bad product fails alone.
 - **Ingredient order is significant.** INCI lists are ordered by descending concentration to 1%. Order must survive description → extraction → metafield → UI.
 - **`key_ingredients` is never auto-accepted**, at any confidence. It is by definition a partial list.
 - **Model is `claude-opus-5`.** Use `output_config.format` with a JSON schema on every extraction call so responses are schema-valid by construction.
@@ -53,22 +53,22 @@ before any publish).
 ├── shopify.app.toml                     scaffolded — app config
 ├── package.json                         scaffolded — root Shopify app only; the pipeline has its own package.json and scripts
 ├── vite.config.ts                       scaffolded — the pipeline runs its own Vitest config from pipeline/, not this file
-├── .env                                 gitignored — secrets
-├── .env.sample                          committed template
+├── .gitignore                           the repo's own, with the template's rules merged in by hand (Task 1)
 ├── app/                                 React Router app (scaffolded)
 │   ├── shopify.server.ts                scaffolded — Shopify auth
 │   └── routes/
-│       └── app.review.tsx               Task 9 — review queue UI
+│       └── app.review.tsx               Task 11 — review queue UI
 ├── data/
 │   ├── ingredient-dictionary.json       Task 6 — curated dictionary
-│   └── candidates.json                  Task 8 — review queue (gitignored)
+│   ├── candidates.json                  Task 8 — review queue; holds human review decisions (gitignored, not regenerable)
+│   └── candidates.json.bak              previous version, kept by every save (gitignored)
 ├── pipeline/                            self-contained package — run its scripts from inside pipeline/
 │   ├── package.json                     own dependencies and pipeline:* scripts
 │   ├── vitest.config.ts                 own Vitest config
 │   ├── tsconfig.json                    own TypeScript config (@types/node, resolveJsonModule)
-│   ├── .env.sample                      committed template — copy to pipeline/.env for pipeline secrets
+│   ├── .env.sample                      committed template — copy to pipeline/.env (gitignored) for pipeline secrets
 │   ├── fixtures/
-│   │   └── labelled-products.json       Task 3 — hand-labelled test set
+│   │   └── labelled-products.json       Task 3 — hand-labelled test set (plus 4 derived highlights-only fixtures)
 │   ├── src/
 │   │   ├── types.ts                     Task 2 — shared types
 │   │   ├── strip-html.ts                Task 2 — HTML → text
@@ -76,14 +76,17 @@ before any publish).
 │   │   ├── extract.ts                   Task 5 — pass 2
 │   │   ├── dictionary.ts                Task 6 — load/normalize/resolve
 │   │   ├── accept.ts                    Task 7 — auto-accept bar
-│   │   ├── candidates.ts                Task 8 — review queue store
+│   │   ├── candidates.ts                Task 8 — review queue store (atomic save + .bak)
 │   │   ├── shopify.ts                   Task 9 — catalogue read + metafield write
 │   │   ├── anthropic-client.ts          Task 10 — Claude API adapter
 │   │   ├── run.ts                       Task 10 — orchestrator CLI (extract / reevaluate / publish)
-│   │   └── evaluate.ts                  Task 10c — fixture accuracy check
+│   │   └── evaluate.ts                  Task 10c — fixture gate: classification + extraction
 │   └── tests/                           one test file per src module
 └── docs/superpowers/{specs,plans}/
 ```
+
+There is no root `.env` or `.env.sample`: the app's Shopify secrets are managed
+by the Shopify CLI, and the pipeline's live in `pipeline/.env`.
 
 Each pipeline module has one responsibility and is independently testable. `strip-html`, `dictionary`, and `accept` are pure functions with no I/O — they carry the highest test value and no API cost.
 
@@ -92,9 +95,9 @@ Each pipeline module has one responsibility and is independently testable. `stri
 ## Task 1: Scaffold the Shopify app
 
 **Files:**
-- Create: everything from the Shopify template at repo root
-- Modify: `.gitignore` (already done — see Step 5)
-- Copy: `pipeline/.env.sample` → `pipeline/.env` (see Step 4; `pipeline/.env.sample` already exists, no root `.env.sample` is created)
+- Create: everything from the Shopify template at repo root, except the template's `.gitignore` and `README.md`
+- Modify: `.gitignore` (merge the template's ignore rules in by hand — Step 3)
+- Copy: `pipeline/.env.sample` → `pipeline/.env` (Step 5; `pipeline/.env.sample` already exists, no root `.env.sample` is created)
 
 **Interfaces:**
 - Consumes: nothing
@@ -104,33 +107,107 @@ Each pipeline module has one responsibility and is independently testable. `stri
 
 - [ ] **Step 1: Scaffold into a temporary directory**
 
-The Shopify CLI creates its own directory, so scaffold beside the repo and move the files in.
+The Shopify CLI always creates the app in a NEW subdirectory named after
+`--name`, inside `--path`. With the command below the app lands in
+`/Users/signebone/Documents/projects/_scaffold/asgard-beauty-app/` — not in
+`_scaffold/` itself.
 
 ```bash
 cd /Users/signebone/Documents/projects
-npm init -y --scope=@tmp 2>/dev/null || true
 npx --yes @shopify/cli@latest app init \
   --template=https://github.com/Shopify/shopify-app-template-react-router \
   --name asgard-beauty-app \
   --path /Users/signebone/Documents/projects/_scaffold
+ls /Users/signebone/Documents/projects/_scaffold/asgard-beauty-app/package.json
 ```
 
-Follow the prompts: log in, and create a **new app** named `Asgard Beauty`.
+Follow the prompts: log in and choose your organization. Because `--name` is
+given, the CLI creates a new app called `asgard-beauty-app` in your Partner
+dashboard without asking for a name (you can rename it there later). The
+final `ls` must print the path back; if it reports "No such file or
+directory", run `ls /Users/signebone/Documents/projects/_scaffold` to see
+where the app landed and use that directory in Steps 2 and 3.
 
-- [ ] **Step 2: Move the scaffold into the repo**
+- [ ] **Step 2: Copy the scaffold into the repo**
 
 ```bash
 cd /Users/signebone/Documents/projects/asgard-scan
 git checkout feature/shopify-ingredient-foundation
-rsync -a --exclude='.git' /Users/signebone/Documents/projects/_scaffold/ ./
+git status
+rsync -a \
+  --exclude='.git' \
+  --exclude='node_modules' \
+  --exclude='.gitignore' \
+  --exclude='README.md' \
+  /Users/signebone/Documents/projects/_scaffold/asgard-beauty-app/ ./
+```
+
+`git status` must say "nothing to commit, working tree clean" before you
+copy, so that Step 7's commit contains only the scaffold.
+
+Every part of the rsync line matters:
+
+- **The source is `_scaffold/asgard-beauty-app/`, with the trailing slash.**
+  That copies the app's *contents* into the repo root. Copying from
+  `_scaffold/` instead would put the app in a nested `asgard-beauty-app/`
+  directory, and Step 4's `npm install` would fail with no `package.json`.
+- **`.gitignore` and `README.md` are excluded.** The template ships its own of
+  both; copying them would overwrite the repo's, silently dropping the ignore
+  rules for `data/candidates.json`, `data/candidates.json.bak`, `build/` and
+  `!.env.sample`, and replacing the project README. Step 3 merges the
+  template's ignore rules in by hand instead.
+- **`.git` is excluded** because the CLI initialised its own repository in the
+  scaffold, and **`node_modules` is excluded** because Step 4 installs fresh.
+
+The pipeline is unaffected: it lives in its own package at `pipeline/`, with
+its own `package.json`, so the scaffold's root `package.json` and
+`vite.config.ts` do not collide with anything it needs.
+
+- [ ] **Step 3: Merge the template's `.gitignore` into the repo's**
+
+Look at the template's ignore rules (the scaffold directory still exists):
+
+```bash
+cat /Users/signebone/Documents/projects/_scaffold/asgard-beauty-app/.gitignore
+```
+
+Append to the repo's root `.gitignore`, under a `# Shopify app (template)`
+comment, every line it does not already cover. As of this writing that means:
+
+```
+/.cache
+/app/build
+/public/build/
+/public/_dev
+/app/public/build
+/prisma/dev.sqlite
+/prisma/dev.sqlite-journal
+database.sqlite
+/extensions/*/dist
+.shopify/*
+.shopify.lock
+.react-router/
+```
+
+The two `prisma/dev.sqlite` lines are the important ones: that file is the
+app's session store and holds your shop's Admin API access token. Already
+covered by the root file, so skip them: `node_modules`, `.DS_Store`, `/build`
+(the root has `build/`), `.env` and `.env.*`. **Leave out any lockfile lines**
+(`package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`) if the template has them:
+this repo commits its lockfiles — `pipeline/package-lock.json` is tracked — and
+an unanchored `package-lock.json` rule would match the pipeline's too.
+
+Check the rules work (these paths need not exist yet), then remove the scaffold:
+
+```bash
+git check-ignore -v prisma/dev.sqlite .shopify/project.json data/candidates.json data/candidates.json.bak pipeline/.env
 rm -rf /Users/signebone/Documents/projects/_scaffold
 ```
 
-This rsync is safe: the pipeline lives in its own package at `pipeline/`,
-with its own `package.json`, so the scaffold's root `package.json` and
-`vite.config.ts` do not collide with anything the pipeline needs.
+Expected: five lines, one matching rule per path. If any path is missing from
+the output, fix `.gitignore` before continuing.
 
-- [ ] **Step 3: Verify it boots**
+- [ ] **Step 4: Verify it boots**
 
 ```bash
 npm install
@@ -141,13 +218,14 @@ Expected: the CLI prints a preview URL and the app installs on your development 
 
 Stop the dev server with Ctrl-C once confirmed.
 
-- [ ] **Step 4: Set up pipeline secrets**
+- [ ] **Step 5: Set up pipeline secrets**
 
 Pipeline secrets live in `pipeline/.env`, not a root `.env.sample` — the
 pipeline is a self-contained package that loads its own env file
-(`pipeline/src/run.ts` resolves `pipeline/.env` via a module-relative path,
-independent of the process cwd). `pipeline/.env.sample` already exists as
-the committed template; copy it and fill in real values:
+(`pipeline/src/run.ts` and `pipeline/src/evaluate.ts` resolve `pipeline/.env`
+via a module-relative path, independent of the process cwd).
+`pipeline/.env.sample` already exists as the committed template; copy it and
+fill in real values:
 
 ```bash
 cp pipeline/.env.sample pipeline/.env
@@ -159,25 +237,46 @@ Confirm it's gitignored:
 git check-ignore -v pipeline/.env
 ```
 
-Expected: prints a matching `.gitignore` rule (the root `.gitignore`'s
-`.env.*` pattern already covers it). If it prints nothing, add `.env` to
-`.gitignore` before continuing.
+Expected: prints the root `.gitignore`'s plain `.env` rule (e.g.
+`.gitignore:12:.env	pipeline/.env`) — an unanchored `.env` matches a file of
+that name at any depth. (The `.env.*` rule next to it is for files such as
+`.env.local`; it does not match `pipeline/.env`.) If it prints nothing, add
+`.env` to `.gitignore` before continuing.
 
-- [ ] **Step 5: Ignore the candidates file — already done**
+- [ ] **Step 6: Ignore the candidates file — already done**
 
-`data/candidates.json` is already listed in the root `.gitignore`. Confirm
+`data/candidates.json` and its backup `data/candidates.json.bak` are already
+listed in the root `.gitignore`, and Step 3's check covered them. Confirm
 rather than repeat:
 
 ```bash
-git check-ignore -v data/candidates.json
+git check-ignore -v data/candidates.json data/candidates.json.bak
 ```
 
-Expected: prints the matching `.gitignore` rule.
+Expected: prints a matching `.gitignore` rule for each.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
+
+Do not use `git add -A`. First look at exactly what would be committed:
 
 ```bash
-git add -A
+git status --short
+```
+
+Read every line. It should list only the scaffold's files — `app/`,
+`prisma/` (migrations and schema, never `dev.sqlite`), `public/`,
+`extensions/`, `package.json`, `package-lock.json`, `shopify.app.toml`,
+`vite.config.ts`, `tsconfig.json`, `env.d.ts` and the template's other
+dotfiles and docs — plus your `.gitignore` edit. There must be **no `data/`,
+no `build/`, no `.env` or `pipeline/.env`, no `prisma/dev.sqlite`, and no
+`node_modules/`**. If any of those appears, fix `.gitignore` and look again.
+
+When the list is clean, stage those paths by name, check what is staged, and
+commit:
+
+```bash
+git add .gitignore <each path listed by git status>
+git diff --cached --stat
 git commit -m "feat: scaffold Shopify app on React Router 7"
 ```
 
@@ -2300,31 +2399,29 @@ git commit -m "feat: extraction pipeline orchestrator with bounded concurrency"
 - Modify: `app/routes/app.tsx` (add nav link)
 
 **Interfaces:**
-- Consumes: `loadCandidates`, `saveCandidates`, `pendingCandidates`, `Candidate` from `pipeline/src/candidates`; `buildMetafieldWrites`, `writeMetafields`, `createAdminClient` from `pipeline/src/shopify`
+- Consumes: `loadCandidates`, `saveCandidates`, `pendingCandidates`, `upsertCandidate`, `Candidate` from `pipeline/src/candidates`; `buildMetafieldWrites`, `writeMetafields` from `pipeline/src/shopify`
 - Produces: a `/app/review` route
+
+The current React Router template builds its UI from **Polaris web
+components** (`<s-page>`, `<s-section>`, `<s-button>`, ...) — it does not
+install the `@shopify/polaris` React package, and its nav is `<s-app-nav>`,
+not `<NavMenu>`. The code below uses the same components as the template's
+own `app/routes/app._index.tsx`; compare with that file if anything differs
+in your scaffold.
 
 - [ ] **Step 1: Write the route**
 
 Create `app/routes/app.review.tsx`:
 
 ```tsx
-import {
-  Badge,
-  BlockStack,
-  Button,
-  Card,
-  InlineStack,
-  Layout,
-  List,
-  Page,
-  Text,
-} from "@shopify/polaris";
 import { useFetcher, useLoaderData } from "react-router";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import {
   loadCandidates,
   pendingCandidates,
   saveCandidates,
+  upsertCandidate,
+  type Candidate,
 } from "../../pipeline/src/candidates";
 import {
   buildMetafieldWrites,
@@ -2345,16 +2442,23 @@ export async function action({ request }: ActionFunctionArgs) {
   const productGid = String(form.get("productGid"));
   const decision = String(form.get("decision"));
 
-  const all = loadCandidates(CANDIDATES_PATH);
-  const candidate = all.find((c) => c.productGid === productGid);
+  const candidate = loadCandidates(CANDIDATES_PATH).find(
+    (c) => c.productGid === productGid,
+  );
   if (!candidate) return { ok: false, error: "candidate not found" };
+  // Only a pending candidate is the reviewer's to decide: a stale page or a
+  // double click must never overturn a decision already made.
+  if (candidate.status !== "pending") {
+    return { ok: false, error: "candidate was already decided" };
+  }
+
+  const now = new Date().toISOString();
+  let updated: Candidate;
 
   if (decision === "approve") {
-    // Stamp reviewedAt AND publishedAt with the same timestamp here: this
-    // write already puts the metafields on Shopify, so leaving publishedAt
-    // null would make pipeline:publish treat the product as unpublished and
-    // write it again.
-    const now = new Date().toISOString();
+    // buildMetafieldWrites throws for a "none" candidate or an empty list:
+    // those are rejected, never approved (the page offers no Approve button
+    // for them).
     const writes = buildMetafieldWrites(candidate.productGid, {
       ingredients: candidate.proposedList,
       classification: candidate.classification,
@@ -2365,142 +2469,162 @@ export async function action({ request }: ActionFunctionArgs) {
       { request: (query, variables) => admin.graphql(query, { variables }).then((r) => r.json()).then((j) => j.data) },
       writes,
     );
-    candidate.status = "approved";
-    candidate.reviewedAt = now;
-    candidate.publishedAt = now;
+    // Stamp reviewedAt AND publishedAt with the same timestamp: this write
+    // already put the metafields on Shopify, so leaving publishedAt null
+    // would make pipeline:publish write the product again.
+    updated = { ...candidate, status: "approved", reviewedAt: now, publishedAt: now };
   } else {
-    candidate.status = "rejected";
-    candidate.reviewedAt = new Date().toISOString();
+    updated = { ...candidate, status: "rejected", reviewedAt: now };
   }
 
-  saveCandidates(CANDIDATES_PATH, all);
+  // Re-read the file just before saving and replace only this candidate, so
+  // a pipeline command that saved while the Shopify write was in flight is
+  // not reverted. saveCandidates is atomic and keeps candidates.json.bak.
+  saveCandidates(
+    CANDIDATES_PATH,
+    upsertCandidate(loadCandidates(CANDIDATES_PATH), updated),
+  );
   return { ok: true };
 }
 
 export default function ReviewQueue() {
   const { candidates } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher();
+  const fetcher = useFetcher<typeof action>();
+
+  const decide = (productGid: string, decision: "approve" | "reject") =>
+    fetcher.submit({ productGid, decision }, { method: "POST" });
 
   if (candidates.length === 0) {
     return (
-      <Page title="Ingredient review">
-        <Card>
-          <Text as="p">
-            Nothing to review. Run <code>npm run pipeline:extract</code> to
-            process the catalogue.
-          </Text>
-        </Card>
-      </Page>
+      <s-page heading="Ingredient review">
+        <s-section>
+          <s-paragraph>
+            Nothing to review. Run <code>npm run pipeline:extract</code> from
+            inside <code>pipeline/</code> to process the catalogue.
+          </s-paragraph>
+        </s-section>
+      </s-page>
     );
   }
 
   return (
-    <Page title={`Ingredient review (${candidates.length} pending)`}>
-      <Layout>
-        {candidates.map((candidate) => (
-          <Layout.Section key={candidate.productGid}>
-            <Card>
-              <BlockStack gap="300">
-                <InlineStack align="space-between">
-                  <Text as="h2" variant="headingMd">
-                    {candidate.productTitle}
-                  </Text>
-                  <InlineStack gap="200">
-                    <Badge
-                      tone={
-                        candidate.classification === "full_list"
-                          ? "success"
-                          : "attention"
-                      }
-                    >
-                      {candidate.classification}
-                    </Badge>
-                    <Badge>{`confidence ${candidate.confidence}`}</Badge>
-                  </InlineStack>
-                </InlineStack>
+    <s-page heading={`Ingredient review (${candidates.length} pending)`}>
+      {fetcher.data && !fetcher.data.ok && (
+        <s-section>
+          <s-paragraph>
+            <s-text tone="critical">{fetcher.data.error}</s-text>
+          </s-paragraph>
+        </s-section>
+      )}
 
-                <Text as="p" tone="subdued">
-                  {candidate.vendor}
-                </Text>
+      {candidates.map((candidate) => {
+        // The only permitted ordering is by position (concentration order).
+        const ordered = [...candidate.proposedList].sort(
+          (a, b) => a.position - b.position,
+        );
+        const approvable =
+          candidate.classification !== "none" && ordered.length > 0;
 
-                {candidate.reasons.length > 0 && (
-                  <BlockStack gap="100">
-                    <Text as="h3" variant="headingSm">
-                      Why this needs review
-                    </Text>
-                    <List type="bullet">
-                      {candidate.reasons.map((reason) => (
-                        <List.Item key={reason}>{reason}</List.Item>
-                      ))}
-                    </List>
-                  </BlockStack>
+        return (
+          <s-section key={candidate.productGid} heading={candidate.productTitle}>
+            <s-stack direction="block" gap="base">
+              <s-stack direction="inline" gap="base">
+                <s-badge
+                  tone={candidate.classification === "full_list" ? "success" : "warning"}
+                >
+                  {candidate.classification}
+                </s-badge>
+                <s-badge>{`confidence ${candidate.confidence.toFixed(2)}`}</s-badge>
+                <s-text>{candidate.vendor}</s-text>
+              </s-stack>
+
+              {candidate.reasons.length > 0 && (
+                <s-stack direction="block" gap="small">
+                  <s-heading>Why this needs review</s-heading>
+                  <s-unordered-list>
+                    {candidate.reasons.map((reason) => (
+                      <s-list-item key={reason}>{reason}</s-list-item>
+                    ))}
+                  </s-unordered-list>
+                </s-stack>
+              )}
+
+              <s-stack direction="block" gap="small">
+                <s-heading>
+                  {`Proposed list (${ordered.length}) — in concentration order`}
+                </s-heading>
+                <s-paragraph>
+                  {ordered.map((i) => i.canonical).join(", ") || "(none extracted)"}
+                </s-paragraph>
+              </s-stack>
+
+              <s-stack direction="block" gap="small">
+                <s-heading>Extraction notes</s-heading>
+                <s-paragraph>
+                  {candidate.notes || "(no notes — check which section the list came from)"}
+                </s-paragraph>
+                <s-heading>Classifier reasoning</s-heading>
+                <s-paragraph>{candidate.reasoning || "(none recorded)"}</s-paragraph>
+              </s-stack>
+
+              <s-stack direction="block" gap="small">
+                <s-heading>Original description (full text)</s-heading>
+                <s-box
+                  padding="base"
+                  borderWidth="base"
+                  borderRadius="base"
+                  background="subdued"
+                >
+                  {/* s-box cannot scroll, so a plain div does: the ingredient
+                      list is usually far down the description, and the
+                      reviewer must be able to check every entry against it. */}
+                  <div style={{ maxHeight: "24rem", overflowY: "auto", whiteSpace: "pre-wrap" }}>
+                    {candidate.rawText}
+                  </div>
+                </s-box>
+              </s-stack>
+
+              <s-stack direction="inline" gap="base">
+                {approvable && (
+                  <s-button
+                    variant="primary"
+                    onClick={() => decide(candidate.productGid, "approve")}
+                  >
+                    Approve and write to Shopify
+                  </s-button>
                 )}
-
-                <BlockStack gap="100">
-                  <Text as="h3" variant="headingSm">
-                    Proposed list ({candidate.proposedList.length}) — in
-                    concentration order
-                  </Text>
-                  <Text as="p">
-                    {candidate.proposedList.map((i) => i.canonical).join(", ") ||
-                      "(none extracted)"}
-                  </Text>
-                </BlockStack>
-
-                <BlockStack gap="100">
-                  <Text as="h3" variant="headingSm">
-                    Original description
-                  </Text>
-                  <Text as="p" tone="subdued">
-                    {candidate.rawText.slice(0, 600)}
-                  </Text>
-                </BlockStack>
-
-                <InlineStack gap="200">
-                  <fetcher.Form method="post">
-                    <input
-                      type="hidden"
-                      name="productGid"
-                      value={candidate.productGid}
-                    />
-                    <input type="hidden" name="decision" value="approve" />
-                    <Button submit variant="primary">
-                      Approve and write to Shopify
-                    </Button>
-                  </fetcher.Form>
-                  <fetcher.Form method="post">
-                    <input
-                      type="hidden"
-                      name="productGid"
-                      value={candidate.productGid}
-                    />
-                    <input type="hidden" name="decision" value="reject" />
-                    <Button submit tone="critical">
-                      Reject
-                    </Button>
-                  </fetcher.Form>
-                </InlineStack>
-              </BlockStack>
-            </Card>
-          </Layout.Section>
-        ))}
-      </Layout>
-    </Page>
+                <s-button
+                  tone="critical"
+                  onClick={() => decide(candidate.productGid, "reject")}
+                >
+                  Reject
+                </s-button>
+              </s-stack>
+            </s-stack>
+          </s-section>
+        );
+      })}
+    </s-page>
   );
 }
 ```
 
-> Note: this UI currently has no list editing. If editing the proposed list
-> is ever added, the edited list must be saved into `proposedList` before
-> writing the metafields — otherwise `pipeline:publish` could later overwrite
-> a human's edit with the original machine proposal.
+> **Deliberately deferred: edit-then-approve, and the `manual` source value.**
+> The spec lists "edit-then-approve" as a review action and `manual` as an
+> `inci_source` value; this task ships approve and reject only. A list that
+> needs correcting is rejected for now (the product then gets no metafields),
+> and the correction is a later increment. When editing is added, the edited
+> list must be saved into `proposedList` before the metafields are written,
+> and written with `inci_source: "manual"` — otherwise `pipeline:publish` or a
+> re-evaluation could later overwrite a human's edit with the original machine
+> proposal.
 
 - [ ] **Step 2: Add the nav link**
 
-In `app/routes/app.tsx`, inside the existing `<NavMenu>` element, add:
+In `app/routes/app.tsx`, inside the existing `<s-app-nav>` element, add:
 
 ```tsx
-<Link to="/app/review">Ingredient review</Link>
+<s-link href="/app/review">Ingredient review</s-link>
 ```
 
 - [ ] **Step 3: Verify it renders**
@@ -2511,9 +2635,18 @@ npm run dev
 
 Open the app in your Shopify admin and click "Ingredient review". With no `data/candidates.json` present, it should show the empty state telling you to run the pipeline.
 
-- [ ] **Step 4: Run the full suite**
+If the dev server refuses to load a file under `pipeline/` because it is
+outside Vite's allowed list, add `"pipeline"` to `server.fs.allow` in the root
+`vite.config.ts`.
 
-Run: `npm test`
+- [ ] **Step 4: Run the pipeline's suite**
+
+The root app has no test script, so run the pipeline's from inside `pipeline/`:
+
+```bash
+cd pipeline && npm test && cd ..
+```
+
 Expected: PASS — all tests
 
 - [ ] **Step 5: Commit**
@@ -2535,7 +2668,10 @@ git commit -m "feat: admin review queue for pending extractions"
 - Produces: populated metafields and a grown dictionary
 
 Every pipeline command below runs from inside `pipeline/`
-(e.g. `cd pipeline && npm run pipeline:extract`), not from the repo root.
+(e.g. `cd pipeline && npm run pipeline:extract`), not from the repo root. The
+`node -e` snippets run from the repo root, where `data/` lives. Do not run two
+pipeline commands at once, and do not hand-edit `data/candidates.json` while
+one is running.
 
 - [ ] **Step 1: Create the metafield definitions in Shopify**
 
@@ -2559,7 +2695,41 @@ mutation {
 
 Repeat for `inci_source` (`single_line_text_field`), `inci_confidence` (`number_decimal`), and `inci_reviewed_at` (`date_time`).
 
-- [ ] **Step 2: Dry-run against a handful of products first**
+- [ ] **Step 2: Gate on the fixture check — BEFORE the first paid extraction**
+
+```bash
+npm run pipeline:evaluate-fixtures
+echo "exit code: $?"
+```
+
+This runs the real classifier over every hand-labelled fixture and, for each
+fixture labelled `full_list` or `active_inactive`, the real extractor too
+(43 model calls: 26 classifications and 17 extractions — cents, not dollars;
+only `ANTHROPIC_API_KEY` is needed, and it never touches the store). Doing it first means any prompt
+tuning it forces happens before you pay for a full-catalogue extraction, not
+after.
+
+It reports the classification confusion matrix and then checks, per fixture:
+that no `key_ingredients` fixture — including the four highlights-only
+fixtures derived from real descriptions — is classified `full_list`; that
+the extracted first ingredient is the labelled one (a highlights section
+used or merged in usually puts a highlighted ingredient first); and that the
+extracted list is at least the labelled minimum length. It ends with one of:
+
+- `GATE PASSED.` (exit code 0) — continue.
+- `GATE FAILED — do not publish:` (exit code 1) — a partial list would be
+  presented as complete, or an extraction came back wrong. Every problem is
+  listed by product title. Tune the prompt in `pipeline/src/classify.ts` or
+  `pipeline/src/extract.ts`, run `npm test`, and repeat this step.
+- `GATE NOT EVALUATED` (exit code 1) — some calls errored (bad key, overload,
+  refusal), so a clean-looking result may just mean nothing was tested. Fix
+  the errors it lists and re-run. Never treat this as a pass.
+
+A lower overall accuracy with no listed problem is acceptable: a `full_list`
+fixture classified `key_ingredients` is safe over-caution that only routes a
+product to review.
+
+- [ ] **Step 3: Dry-run against a handful of products**
 
 Never edit source for a dry run — cap it with the `PIPELINE_LIMIT` env var instead:
 
@@ -2567,17 +2737,41 @@ Never edit source for a dry run — cap it with the `PIPELINE_LIMIT` env var ins
 PIPELINE_LIMIT=5 npm run pipeline:extract
 ```
 
-Expected: 5 lines of output, each `approved` or `pending`. Inspect `data/candidates.json` (at the repo root — the pipeline reads and writes it via a path relative to `pipeline/`, not the process cwd) and confirm the ingredient lists match the product pages. **Nothing has been written to Shopify yet** — the pipeline only writes `candidates.json`.
+Expected: one progress line per product (5), each `approved` or `pending` —
+with the seed dictionary, expect all or nearly all `pending` (see Step 4).
+Inspect `data/candidates.json` (at the repo root — the pipeline reads and
+writes it via a path relative to `pipeline/`, not the process cwd) and
+confirm the ingredient lists match the product pages, and that each
+candidate's `notes` names the section the list came from. **Nothing has been
+written to Shopify yet** — the pipeline only writes `candidates.json`.
 
-- [ ] **Step 3: Run the full catalogue**
+- [ ] **Step 4: Run the full catalogue**
 
 ```bash
 npm run pipeline:extract
 ```
 
-Expect roughly 10 minutes and a summary line like `62 auto-accepted, 33 need review`.
+Expect roughly 10 minutes and a summary line `Done. N auto-accepted, M need
+review.` **On this first run N will be at or near zero, and that is
+correct.** The seed dictionary holds only Aqua, Tocopherol and the 26 EU
+fragrance allergens, so almost every list contains an ingredient it cannot
+resolve yet. This is the spec's run ordering — extract everything first,
+then build the dictionary from the extracted corpus (Step 5), then evaluate
+the bar (Step 6) — and re-evaluation, not re-extraction, is what promotes
+products to auto-accepted.
 
-- [ ] **Step 4: Grow the dictionary from the real corpus**
+Some products stay in review whatever the dictionary holds, by design:
+every product whose description has a highlights heading ("Key
+Ingredients", "Star Ingredient", "Ingredient Spotlight", ...) — at least the
+13 "Key Ingredients" products the spec counts, plus any whose copy mentions a
+"star ingredient" or similar — because on exactly that shape the extractor
+may have used or merged the highlights; any list with a duplicated ingredient;
+`key_ingredients` and `active_inactive` products; and the few `none`
+products with no ingredient data. Products that failed (e.g. an overloaded
+API) are listed at the end and were not saved — re-run the same command to
+retry them.
+
+- [ ] **Step 5: Grow the dictionary from the real corpus**
 
 List every ingredient the accept bar could not resolve. Run this from the repo root, since `data/` lives there rather than inside `pipeline/`:
 
@@ -2597,33 +2791,40 @@ for (const cand of c) {
 
 Add the genuine ingredients to `data/ingredient-dictionary.json`, working down by frequency. Where two entries are the same ingredient spelled differently, add one as a `synonym` of the other rather than as a second entry. Bump `version`.
 
-- [ ] **Step 5: Re-evaluate — do NOT re-extract**
+- [ ] **Step 6: Re-evaluate — do NOT re-extract**
 
 ```bash
 npm run pipeline:reevaluate
 ```
 
-Expected output like `Pending: 33 -> 19 (14 newly auto-accepted). No model calls made.`
+Expected output like `Pending: 80 -> 52 (28 newly auto-accepted, 0 demoted back to review). No model calls made.`
 
 This re-runs only the accept bar against the cached extractions. **Use this, not `pipeline:extract`, while growing the dictionary** — re-extracting would re-pay the full model cost and ~10 minutes to re-test a pure function whose inputs have not changed. Re-run `pipeline:extract` only when the *catalogue* changes or you have edited a prompt.
 
-Repeat steps 4–5 until the remaining pending items are genuine judgement calls rather than dictionary gaps.
+Re-evaluation works in both directions. If you raise `CONFIDENCE_THRESHOLD`
+in `pipeline/src/accept.ts` after looking at the real confidence
+distribution, or remove a synonym that turned out to be wrong, run it again:
+any auto-accepted product that has not been published yet and no longer
+passes is demoted back to review. Published and human-reviewed candidates
+are never touched.
 
-- [ ] **Step 6: Gate on the fixture accuracy check before publishing anything**
-
-```bash
-npm run pipeline:evaluate-fixtures
-```
-
-This exercises the real classifier against the hand-labelled fixtures and
-reports the confusion matrix. If it reports any `key_ingredients` fixture
-classified as `full_list`, **stop** — that is a partial list that would be
-written as if it were complete — and tune the classifier prompt before
-publishing anything.
+Repeat steps 5–6 until the remaining pending items are genuine judgement calls rather than dictionary gaps.
 
 - [ ] **Step 7: Work the review queue**
 
-Open `/app/review` in the Shopify admin. For each candidate, check the proposed list against the original description and approve or reject. Approving writes the metafields immediately.
+Open `/app/review` in the Shopify admin. For each candidate, check the
+proposed list against the full original description, read the extraction
+notes and the classifier's reasoning, and approve or reject. Approving writes
+the metafields immediately.
+
+- **Reject every `none` candidate.** These products have no ingredient data;
+  the spec writes no metafields for them, so the page shows only a Reject
+  button, and the pipeline refuses to write them even if approved.
+- For a candidate held back by a **highlights section**, confirm the proposed
+  list is the complete ingredient list — in its written order, with nothing
+  from the highlights merged in and nothing duplicated — before approving.
+- A list that is wrong in any way is rejected: editing before approval is
+  not built yet (see Task 11).
 
 - [ ] **Step 8: Publish the auto-accepted candidates**
 
@@ -2633,7 +2834,9 @@ npm run pipeline:publish
 
 This writes every approved-but-unpublished candidate's metafields to
 Shopify; the review queue handles the rest. Safe to re-run — it never
-touches a pending, rejected, or already-published candidate.
+touches a pending, rejected, or already-published candidate. Run Step 6
+first if you have changed the dictionary or the threshold since the last
+re-evaluation.
 
 - [ ] **Step 9: Verify metafields landed on a product**
 
@@ -2657,16 +2860,77 @@ git add data/ingredient-dictionary.json
 git commit -m "feat: grow ingredient dictionary from the live corpus"
 ```
 
+`data/candidates.json` is not committed (it is gitignored), but it holds your
+review decisions, which cannot be regenerated. Every save keeps the previous
+version as `data/candidates.json.bak`; copy the file somewhere safe after a
+review session.
+
+### Later: when a reviewed or published product's description changes
+
+`pipeline:extract` never re-extracts a product that has been reviewed or
+published — that would overwrite a human decision. Instead, each run compares
+those products' current descriptions with the text they were reviewed
+against and prints any that changed:
+
+```
+!!! 1 skipped product(s) have a description that changed since they were reviewed or published — their stored result, and any metafields already on Shopify, reflect the OLD text:
+  - EAST 29th | Valia Cleanser (gid://shopify/Product/6810174193718)
+```
+
+To force re-extraction of one, delete its entry from `data/candidates.json`
+(from the repo root, with no pipeline command running; replace the id with
+the one printed):
+
+```bash
+PRODUCT_GID='gid://shopify/Product/6810174193718' node -e "
+const fs = require('fs');
+const path = './data/candidates.json';
+const gid = process.env.PRODUCT_GID;
+const all = JSON.parse(fs.readFileSync(path, 'utf8'));
+const kept = all.filter((c) => c.productGid !== gid);
+if (kept.length === all.length) throw new Error('no candidate for ' + gid);
+fs.copyFileSync(path, path + '.bak');
+fs.writeFileSync(path, JSON.stringify(kept, null, 2) + '\n');
+console.log('Removed ' + gid + '; the previous file is kept as ' + path + '.bak');
+"
+```
+
+(The variable is `PRODUCT_GID`, not `GID`: zsh reserves `GID` for your group
+id.) Then run `npm run pipeline:extract` from inside `pipeline/`. Note that
+this also re-extracts every candidate still pending. The product then goes
+through the bar and, if needed, the review queue like a new one.
+
+**If that product had been human-reviewed**, its old `inci_reviewed_at`
+metafield stays on the product — a fresh auto-accepted list would then carry
+a review timestamp it never received. The pipeline does not remove it; delete
+it by hand in the GraphiQL app (same id) right after deleting the entry:
+
+```graphql
+mutation {
+  metafieldsDelete(metafields: [
+    { ownerId: "gid://shopify/Product/6810174193718", namespace: "asgard", key: "inci_reviewed_at" }
+  ]) {
+    deletedMetafields { key namespace ownerId }
+    userErrors { field message }
+  }
+}
+```
+
+If the product is approved again in the review queue, approval writes a new
+`inci_reviewed_at` anyway.
+
 ---
 
 ## Done when
 
 - [ ] Every product with recoverable ingredient data has `asgard.inci_list` populated in concentration order
 - [ ] Every populated product has `asgard.inci_source`, so no partial list can pass as complete
+- [ ] No product classified `none` has any `asgard.*` metafield
 - [ ] `cd pipeline && npm test` passes
-- [ ] The `key_ingredients` regression test in `pipeline/tests/accept.test.ts` passes — a "Key Ingredients" block is never auto-accepted
+- [ ] The `key_ingredients` regression test in `pipeline/tests/accept.test.ts` passes — a candidate *classified* `key_ingredients` is never auto-accepted, at any confidence. (It tests the classification, not the text: whether a "Key Ingredients" block gets that classification is what the fixture gate below measures.)
+- [ ] The accept bar's highlights rules in `pipeline/tests/accept.test.ts` pass — a description containing a highlights heading ("Key Ingredients", "Star Ingredient", "Ingredient Spotlight", ...) and a list containing a duplicated ingredient each route the product to review, even when it is classified `full_list`
 - [ ] `data/ingredient-dictionary.json` is committed and covers the catalogue's common ingredients
-- [ ] `pipeline:evaluate-fixtures` reports no key_ingredients fixture classified as full_list
+- [ ] `pipeline:evaluate-fixtures` prints `GATE PASSED.` and exits 0: no `key_ingredients` fixture (including the derived highlights-only ones) classified as `full_list`, every extraction check has the labelled first ingredient and at least the labelled minimum count, and no fixture errored
 - [ ] `pipeline:publish` reports 0 failures
 - [ ] `/app/review` shows an empty queue
 - [ ] No secrets are committed: `git log -p | grep -iE 'shpat_|sk-ant-'` returns nothing
