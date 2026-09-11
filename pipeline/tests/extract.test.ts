@@ -69,4 +69,28 @@ describe("extractIngredients", () => {
       .calls[0][0] as string;
     expect(prompt).toMatch(/actives first/i);
   });
+
+  test.each(["full_list", "active_inactive", "key_ingredients"] as const)(
+    "prompt (%s) tells the model to extract ONLY the complete list when a highlights section co-occurs with it",
+    async (classification) => {
+      const client = fakeClient({ ingredients: [], confidence: 0.9, notes: "" });
+
+      await extractIngredients(client, "x", classification);
+
+      const prompt = (client.complete as ReturnType<typeof vi.fn>).mock
+        .calls[0][0] as string;
+
+      // Real assertions on the co-occurrence guidance (C1): the classifier
+      // says full_list for "Key Ingredients + complete list", so the extractor
+      // must pick the complete list, never the highlights, and never a merge
+      // of the two (which would duplicate entries and put a highlight first).
+      expect(prompt).toMatch(/key\s+ingredients/i);
+      expect(prompt).toMatch(/ingredient\s+spotlight/i);
+      expect(prompt).toMatch(/complete\s+(?:ingredient\s+)?list/i);
+      expect(prompt).toMatch(/extract\s+ONLY\s+the\s+complete\s+list/);
+      expect(prompt).toMatch(/written\s+order/i);
+      expect(prompt).toMatch(/never\s+merge/i);
+      expect(prompt).toMatch(/notes[^.]*which\s+section/i);
+    },
+  );
 });

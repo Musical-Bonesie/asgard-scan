@@ -80,6 +80,38 @@ describe("processProduct", () => {
     const candidate = await processProduct(deps("full_list", 0.95), PRODUCT);
     expect(candidate.rawText).toBe("Ingredients: Aqua, Glycerin, Tocopherol");
   });
+
+  test("routes a full_list with a highlights heading in its description to review (C1)", async () => {
+    // Both model passes agree and every token resolves, but the description
+    // also carries a "Key Ingredients" block — the shape where the extractor
+    // may have used or merged the highlights. The bar sees the stripped text.
+    const candidate = await processProduct(deps("full_list", 0.99), {
+      ...PRODUCT,
+      descriptionHtml:
+        "<p><strong>Key Ingredients:</strong></p><ul><li>Glycerin</li></ul>" +
+        "<p>Ingredients: Aqua, Glycerin, Tocopherol</p>",
+    });
+    expect(candidate.status).toBe("pending");
+    expect(candidate.reasons).toHaveLength(1);
+    expect(candidate.reasons[0]).toMatch(/highlights section \("Key Ingredients"\)/);
+  });
+
+  test("routes an extraction with a duplicated ingredient to review (C1)", async () => {
+    const d = deps("full_list", 0.99);
+    d.extract.mockResolvedValue({
+      ingredients: [
+        { raw: "Glycerin", canonical: "Glycerin", position: 0 },
+        { raw: "Aqua", canonical: "Aqua", position: 1 },
+        { raw: "Glycerin", canonical: "Glycerin", position: 2 },
+        { raw: "Tocopherol", canonical: "Tocopherol", position: 3 },
+      ],
+      confidence: 0.99,
+      notes: "",
+    });
+    const candidate = await processProduct(d, PRODUCT);
+    expect(candidate.status).toBe("pending");
+    expect(candidate.reasons.join(" ")).toMatch(/duplicate ingredients: Glycerin/);
+  });
 });
 
 describe("reevaluateCandidates", () => {
@@ -125,6 +157,17 @@ describe("reevaluateCandidates", () => {
     const [result] = reevaluateCandidates([withUnknown], DICT);
     expect(result.status).toBe("pending");
     expect(result.reasons.join(" ")).toMatch(/Unobtainium/);
+  });
+
+  test("applies the highlights-heading rule to the stored description (C1)", () => {
+    const withHighlights = {
+      ...base,
+      rawText: "Star Ingredient: Glycerin\nIngredients: Aqua, Glycerin, Tocopherol",
+    };
+    const [result] = reevaluateCandidates([withHighlights], DICT);
+    expect(result.status).toBe("pending");
+    expect(result.reasons).toHaveLength(1);
+    expect(result.reasons[0]).toMatch(/highlights section \("Star Ingredient"\)/);
   });
 });
 

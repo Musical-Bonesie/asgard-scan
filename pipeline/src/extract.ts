@@ -33,6 +33,19 @@ Rules:
   INCI name with parenthetical common names removed — e.g.
   "Butyrospermum Parkii (Shea) Butter" has canonical "Butyrospermum Parkii Butter".
 - Do not invent ingredients. Extract only what is present.
+- Many descriptions contain a marketing highlights section — headed e.g.
+  "Key Ingredients", "Star Ingredients", "Hero Ingredients" or "Ingredient
+  Spotlight", or hero ingredients praised in the prose — AND, separately, a
+  complete ingredient list (commonly headed "Ingredients:" or "Full Ingredient
+  List"). When the description contains both, extract ONLY the complete list,
+  in its written order. Never merge highlight entries into it: do not add an
+  ingredient that appears only in the highlights, do not repeat an ingredient
+  because it is named in both places, and do not let the highlights change
+  which ingredient comes first. Only when there is no complete list at all do
+  you extract the highlights.
+- In notes, always say which section you extracted from, quoting its heading
+  (or saying it was unlabelled), and mention any highlights section you
+  deliberately left out.
 - Set confidence to your genuine certainty that this list is complete and
   correctly ordered.
 `;

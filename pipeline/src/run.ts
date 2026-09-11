@@ -62,6 +62,7 @@ export async function processProduct(
     confidence: Math.min(classified.confidence, extracted.confidence),
     ingredients: extracted.ingredients,
     dictionary: deps.dictionary,
+    rawText: text,
   });
 
   return {
@@ -191,6 +192,7 @@ export function reevaluateCandidates(
       confidence: candidate.confidence,
       ingredients: candidate.proposedList,
       dictionary,
+      rawText: candidate.rawText,
     });
 
     return {
