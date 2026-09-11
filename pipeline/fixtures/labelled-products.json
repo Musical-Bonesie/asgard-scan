@@ -140,7 +140,8 @@
       "classification": "key_ingredients",
       "firstIngredient": null,
       "minCount": 0
-    }
+    },
+    "rationale": "Real product, labelled key_ingredients because its declared list is judged incomplete. Its \"Ingredient Spotlight\" credits the cleansing to an extract, \"coco betaines\", which \"safely, gently and effectively removes excess oil and dirt\", and the copy promises \"a rich and luxurious lather\" — yet the labelled \"Ingredients:\" list names no betaine and no surfactant of any kind, only oils, water, butter, juice, an extract and essential oils. A lathering body wash needs a surfactant, so the declared list is missing at least one ingredient and must not be presented as complete."
   },
   {
     "id": 4684958564406,
@@ -240,5 +241,61 @@
       "firstIngredient": null,
       "minCount": 0
     }
+  },
+  {
+    "id": "4817179279414-derived",
+    "title": "EAST29TH | Vital Serum (derived: complete list removed)",
+    "vendor": "EAST 29TH",
+    "bodyHtml": "<p>30ml/1oz</p>\n<p> </p>\n<p><strong>Benefits:</strong></p>\n<ul>\n<li>Hydration</li>\n<li>Brightens</li>\n<li>Improves skin tone and texture</li>\n<li>Firming</li>\n<li>Fragrance Free (no additive to mask or add a scent) </li>\n<li>Clarity</li>\n<li>Calms </li>\n</ul>\n<p> </p>\n<p><strong>Key Ingredients: </strong></p>\n<ul>\n<li>Hyaluronic Acid </li>\n<li>Lemon Rind Extract</li>\n<li>Niacinamide</li>\n<li>Vitamin C</li>\n<li>Vitamin E</li>\n<li>\n<meta charset=\"UTF-8\"> <span>AHA Fruit Complex to Exfoliate </span>\n</li>\n<li><span>Green Tea Extract</span></li>\n</ul>\n<p> </p>\n<p> </p>\n<p><meta charset=\"utf-8\"><span data-mce-fragment=\"1\">This serum was made with intention and designed to deliver a high concentration of natural ingredients.  Lemon Rind Extract is a special ingredient in this serum with its high in antioxidant properties. It has shown to help improve skin clarity by cleansing, exfoliating, and brightening, removing dead skin cells, and promoting elasticity. Other star ingredients like Niacinamide that helps <meta charset=\"utf-8\">visibly improve the appearance of enlarged pores, uneven skin tones, blemish pone skin, fine lines, and dullness.</span></p>\n<p> </p>\n<p><span data-mce-fragment=\"1\"><strong>Directions:</strong> Apply directly onto damp skin after cleansing to improve hydration. </span></p>\n<p> </p>\n<p> </p>\n<p> </p>\n<p><strong> ActiveIngredients (for the sake of Transparency)</strong>:</p>\n<ul>\n<li>\n<span>Extract, Lemon Extract, Acer Saccharum) – </span><span class=\"semibold\">0.5%</span><span></span><br><span></span>\n</li>\n<li>\n<span>Multivitamin Liposomes (Phopholipids, Retinyl Palmitate, Tocopherol, Ascorbyl Palmitate, Beta Carotene) – </span><span class=\"semibold\">0.5%</span>\n</li>\n<li>\n<span>Green Tea Extract – </span><span class=\"semibold\">0.5%</span>\n</li>\n<li>\n<span>Euphrasia Extract – </span><span class=\"semibold\">1%</span>\n</li>\n<li>\n<span>Niacinamide – </span><span class=\"semibold\">1.5%</span>\n</li>\n<li>\n<span>Hyaluronic Acid – </span><span class=\"semibold\">0.5%</span>\n</li>\n</ul>\n<p> </p>\n<p> </p>\n<p><strong>Clean Beauty - All Natural - Fragrance Free - Cruelty Free - Paraben Free -Non-GMO - Vegan</strong></p>\n<p> </p>\n<p><span data-mce-fragment=\"1\">MADE IN CANADA</span></p>",
+    "expected": {
+      "classification": "key_ingredients",
+      "firstIngredient": null,
+      "minCount": 0
+    },
+    "derived": true,
+    "derivedFrom": 4817179279414,
+    "rationale": "Derived, not raw store data: the live catalogue has no genuine highlights-only product (Ruling 16). Built from fixture 4817179279414 by deleting only the \"Full Ingredient List Ingredients:\" heading and the list under it; every remaining byte is the verbatim live description. What remains is its \"Key Ingredients:\" section, its partial \"ActiveIngredients (for the sake of Transparency)\" section, and the \"Other star ingredients\" prose — highlights only, with no complete list anywhere, so key_ingredients. Classifying this as full_list is the costliest error."
+  },
+  {
+    "id": "6583234658358-derived",
+    "title": "Natrèceutique | Bakuchiol Building Blocks (Cream-Serum) (derived: complete list removed)",
+    "vendor": "Natrèceutique",
+    "bodyHtml": "<meta charset=\"utf-8\">\n<p class=\"\" data-mce-fragment=\"1\"><strong>15ml</strong></p>\n<p class=\"\" data-mce-fragment=\"1\"> </p>\n<p class=\"\" data-mce-fragment=\"1\">Do we call it a cream or a serum? Why not both!</p>\n<p class=\"\" data-mce-fragment=\"1\"> </p>\n<p class=\"\" data-mce-fragment=\"1\"><strong>Great for:</strong></p>\n<ul>\n<li>Aging gracefully (We all age and it's a beautiful thing so instead of <em>'anti'</em> we say <em>graceful</em> )  </li>\n<li>Acne or blemish prone skin</li>\n<li>Barrier support that has a boost of a powerful serum</li>\n<li>Improving skin texture <em>(with regular and consistent use)</em>\n</li>\n<li><em>Brighter, more even tone</em></li>\n<li><em>Looking to keep your skincare routine simple but concentrated </em></li>\n</ul>\n<p class=\"\" data-mce-fragment=\"1\"> </p>\n<p class=\"\" data-mce-fragment=\"1\">Formulated with <strong>Bakuchiol</strong>, that has been shown to improve the signs of aging in the skin and its overall appearance, while being more gentle than retinol. Most skin types <em>should</em> able to use it every day without having to manage dryness and irritation (but please start slow and be gentle with your skin!) </p>\n<p class=\"\" data-mce-fragment=\"1\"> </p>\n<p class=\"\" data-mce-fragment=\"1\"><strong>Key ingredients:</strong></p>\n<ul>\n<li>\n<strong>Bakuchiol: </strong>Improves signs of aging similar to retinol but with less negative effects</li>\n<li>\n<strong>Vitamin C (<meta charset=\"utf-8\">\n<span data-mce-fragment=\"1\">Tetrahexyldecyl Ascorbate)</span>:</strong> Evens skin tone and boost collagen production </li>\n<li>\n<strong>Phytosphingosine SLC</strong>:<strong> </strong>Supports your skin barrier by mimicking <meta charset=\"utf-8\">ceramides</li>\n<li>\n<strong>Salicylic acid:</strong> Helps dig deep into your pores to help improve skin texture</li>\n</ul>\n<p class=\"\" data-mce-fragment=\"1\"> </p>\n<p class=\"\" data-mce-fragment=\"1\"> </p>\n<p class=\"\" data-mce-fragment=\"1\"> </p>\n<p class=\"\" data-mce-fragment=\"1\">With Bakuchiol taking over the skincare world and understandably so! The Sunscreen Company wanted this Natrèceutique product to be a concentrated corrective product that packs a punch and reinforces the building blocks of the skin, all while supporting the integrity of your natural barrier.</p>\n<p class=\"\" data-mce-fragment=\"1\">Natrèceutique Bakuchiol Building Blocks, not only has bakuchiol but has an <strong>oil-soluble version of Vitamin C</strong>, Tetrahexyldecyl Ascorbate. It has been shown to have better stability than its water-soluble counterpart both in the formula and on the skin <em>(yay for brighter more even skin and good bye hyperpigmentation and sun spots!).</em> It is <span data-mce-fragment=\"1\">possible to combine both ingredients without any resulting irritation b</span>ecause of their gentle yet effective nature and stability.</p>\n<p class=\"\" data-mce-fragment=\"1\">But of course, The Sunscreen Company went above and beyond to make this cream-serum the ultimate natural skin refining product by adding two other  ingredients that will help refine your skin. One of those ingredients is an<strong> innovative and skin refining ingredient called Phytosphingosine SLC.</strong> Phytosphingosines mimics the skin's own ceramides, to help heal and support your skin barrier. This ingredient is <strong>coupled with salicylic acid to improve the texture and overall appearance of the skin</strong>. This innovative cream-serum has simple, concentrated and effective ingredients that are the foundation of any good skincare routine and is unlike anything available.</p>\n<p class=\"\" data-mce-fragment=\"1\"><em>As always, The Sunscreen Company creates formulas that include no essential oils, fillers or fragrances. It represents the best in a curated, clean clinical formula.</em></p>\n<p class=\"\" data-mce-fragment=\"1\"><br data-mce-fragment=\"1\"><span data-mce-fragment=\"1\"></span></p>\n<p class=\"\" data-mce-fragment=\"1\"> </p>\n<p class=\"\" data-mce-fragment=\"1\"> </p>\n<p class=\"\" data-mce-fragment=\"1\">MADE IN CANADA - VEGAN</p>",
+    "expected": {
+      "classification": "key_ingredients",
+      "firstIngredient": null,
+      "minCount": 0
+    },
+    "derived": true,
+    "derivedFrom": 6583234658358,
+    "rationale": "Derived, not raw store data: the live catalogue has no genuine highlights-only product (Ruling 16). Built from fixture 6583234658358 by deleting only the \"Ingredients:\" heading and the list under it; every remaining byte is the verbatim live description. What remains is its \"Key ingredients:\" section (Bakuchiol, Vitamin C, Phytosphingosine SLC, Salicylic acid) and the marketing prose — highlights only, with no complete list anywhere, so key_ingredients. Classifying this as full_list is the costliest error."
+  },
+  {
+    "id": "6810267942966-derived",
+    "title": "EAST 29th | Verse Lotion Mist (derived: complete list removed)",
+    "vendor": "EAST 29TH",
+    "bodyHtml": "<p>4 fl oz - 118ml </p>\n<p> </p>\n<p><em>Good for all skin types</em></p>\n<p><br></p>\n<p>east29th Verse is a clear lotion mist -- think hydrating toner meets a lightweight liquid gel lotion. It contains all-natural ingredients like Sugar Kelp, Sea Buckthorn, Ginseng, Vegetable Ceramides and east29th star ingredient, Lemon Rind.  This combination strives to improve hydration, elasticity, clarity and tone. </p>\n<p> </p>\n<p><strong>Directions: </strong></p>\n<p>Mist onto applicator of choice or directly onto clean skin covering the face, neck, and chest at the beginning and/or end of your routine. For best results, use twice daily after cleansing and<a href=\"https://asgardbeauty.com/collections/east-29th/products/vitalserum\" title=\"east29th Vital Anti-aging Serum\" data-mce-href=\"https://asgardbeauty.com/collections/east-29th/products/vitalserum\" target=\"_blank\"> east29th's Vital Serum</a> to lock in the benefits. Apply throughout the day as necessary.<br><br><strong><span style=\"text-decoration: underline;\">*Asgard Note: </span></strong></p>\n<ul>\n<li>Those of us who only us cleanser once a day --  Verse lotion mist is perfect as a morning cleanser. Spray to saturate a reusable cotton round and apply to your face and neck. Follow up with your favourite serum like <a title=\"east29th hydrating Vital Serum\" href=\"https://asgardbeauty.com/collections/east-29th/products/vitalserum\" target=\"_blank\">east29th vital serum</a>, <a title=\"Graydon Anti-aging Fullmoon Serum\" href=\"https://asgardbeauty.com/collections/graydon/products/fullmoon-serum\" target=\"_blank\">Graydon's Fullmoon serum</a> or <a title=\"oOlution's Game Over Anti-imperfection serum\" href=\"https://asgardbeauty.com/collections/oolution-french-organic-skincare/products/oolution-game-over-anti-blemish-cream-serum\" target=\"_blank\">oOlution Game Over Anti-Imperfection Serum</a>\n</li>\n</ul>\n<p> </p>\n<p> </p>\n<p> </p>\n<p><meta charset=\"utf-8\"><span><br><br><br><br>MADE IN CANADA</span></p>",
+    "expected": {
+      "classification": "key_ingredients",
+      "firstIngredient": null,
+      "minCount": 0
+    },
+    "derived": true,
+    "derivedFrom": 6810267942966,
+    "rationale": "Derived, not raw store data: the live catalogue has no genuine highlights-only product (Ruling 16). Built from fixture 6810267942966 by deleting only the \"Ingredients:\" heading and the list under it (the \"MADE IN CANADA\" line that shared the list's <span> is kept); every remaining byte is the verbatim live description. What remains is the prose naming Sugar Kelp, Sea Buckthorn, Ginseng, Vegetable Ceramides and the \"star ingredient\" Lemon Rind — highlights only, with no complete list anywhere, so key_ingredients. Classifying this as full_list is the costliest error."
+  },
+  {
+    "id": "6810174193718-derived",
+    "title": "EAST 29th | Valia Cleanser (derived: complete list removed)",
+    "vendor": "EAST 29TH",
+    "bodyHtml": "<p>4 fl oz - 118 ml</p>\n<p> </p>\n<p>A lightweight gel cleanser that deeply cleanses the skin, removing dirt and oil while supporting the skin's moisture barrier with vegetable ceramides,  and improving tone and texture with Sea Buckthorn Extract, Willow Bark Extract and east29th star ingredient, Lemon Rind Extract. <br>If you're a double cleansing fan, this cleanser is a perfect second step after using makeup remover, cleansing balms or oils. The east29th Valia cleanser pairs beautifully with <a href=\"https://asgardbeauty.com/collections/skin-cleanser/products/beaute-divine-cleanser\" target=\"_blank\" rel=\"noopener noreferrer\">Corpa Flora's Beauté Divine Cleanser</a>.<br><br><br><strong>Directions</strong>: </p>\n<p><meta charset=\"utf-8\"><span data-mce-fragment=\"1\">Gently massage 2-3 pumps onto damp skin and rinse thoroughly with warm water. Follow with serum and moisturizer like <a href=\"https://asgardbeauty.com/collections/east-29th/products/vitalserum\" target=\"_blank\" title=\"east29th Vital Serum\" rel=\"noopener noreferrer\">east29th Vital Serum</a> and <a href=\"https://asgardbeauty.com/collections/moisturizers/products/oolution-whole-again-moisturizing-cream\" target=\"_blank\" title=\"oOution Whole Again Cream\" rel=\"noopener noreferrer\">oOlution's Whole Again</a>. </span><br><br><br><br><br></p>",
+    "expected": {
+      "classification": "key_ingredients",
+      "firstIngredient": null,
+      "minCount": 0
+    },
+    "derived": true,
+    "derivedFrom": 6810174193718,
+    "rationale": "Derived, not raw store data: the live catalogue has no genuine highlights-only product (Ruling 16). Built from fixture 6810174193718 by deleting only the \"Ingredients:\" heading and the list after it; every remaining byte is the verbatim live description. What remains is the prose naming vegetable ceramides, Sea Buckthorn Extract, Willow Bark Extract and the \"star ingredient\" Lemon Rind Extract — highlights only, with no complete list anywhere, so key_ingredients. Classifying this as full_list is the costliest error."
   }
 ]
