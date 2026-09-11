@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
@@ -31,6 +31,7 @@ function candidate(overrides: Partial<Candidate> = {}): Candidate {
     reasons: [],
     status: "pending",
     reviewedAt: null,
+    publishedAt: null,
     ...overrides,
   };
 }
@@ -72,6 +73,16 @@ describe("candidate store", () => {
       candidate({ productGid: "gid://shopify/Product/2", status: "approved" }),
     ];
     expect(pendingCandidates(list)).toHaveLength(1);
+  });
+
+  test("loads a candidates file written before publishedAt existed with publishedAt null", () => {
+    const legacy = candidate() as unknown as Record<string, unknown>;
+    delete legacy.publishedAt;
+    writeFileSync(file, JSON.stringify([legacy]), "utf8");
+
+    const loaded = loadCandidates(file);
+    expect(loaded).toHaveLength(1);
+    expect(loaded[0].publishedAt).toBeNull();
   });
 
   test("preserves ingredient order across a save/load cycle", () => {

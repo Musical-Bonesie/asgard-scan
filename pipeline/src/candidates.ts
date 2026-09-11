@@ -17,11 +17,19 @@ export interface Candidate {
   reasons: string[];
   status: CandidateStatus;
   reviewedAt: string | null;
+  /** When the candidate's metafields were written to Shopify. Null until published. */
+  publishedAt: string | null;
 }
 
 export function loadCandidates(path: string): Candidate[] {
   if (!existsSync(path)) return [];
-  return JSON.parse(readFileSync(path, "utf8")) as Candidate[];
+  const raw = JSON.parse(readFileSync(path, "utf8")) as Array<
+    Omit<Candidate, "publishedAt"> & { publishedAt?: string | null }
+  >;
+  return raw.map((candidate) => ({
+    ...candidate,
+    publishedAt: candidate.publishedAt ?? null,
+  }));
 }
 
 export function saveCandidates(path: string, candidates: Candidate[]): void {
