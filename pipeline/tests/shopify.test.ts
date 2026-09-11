@@ -58,6 +58,20 @@ describe("buildMetafieldWrites", () => {
       "key_ingredients",
     );
   });
+
+  test("omits inci_reviewed_at entirely when reviewedAt is null (auto-accepted, unreviewed)", () => {
+    const unreviewed = buildMetafieldWrites(GID, {
+      ingredients: [{ raw: "Aqua", canonical: "Aqua", position: 0 }],
+      classification: "full_list",
+      confidence: 0.95,
+      reviewedAt: null,
+    });
+    expect(unreviewed).toHaveLength(3);
+    expect(unreviewed.map((w) => w.key).sort()).toEqual(
+      ["inci_confidence", "inci_list", "inci_source"].sort(),
+    );
+    expect(unreviewed.find((w) => w.key === "inci_reviewed_at")).toBeUndefined();
+  });
 });
 
 describe("chunkMetafields", () => {
@@ -98,6 +112,57 @@ describe("chunkMetafields", () => {
         expect(inChunk).toBe(total);
       }
     }
+  });
+
+  function group(ownerId: string, count: number) {
+    return Array.from({ length: count }, (_, i) => ({
+      ownerId,
+      namespace: METAFIELD_NAMESPACE,
+      key: `k${i}`,
+      type: "single_line_text_field",
+      value: "x",
+    }));
+  }
+
+  test("packs a mix of 3-write and 4-write products without exceeding the limit or splitting a product", () => {
+    // Auto-accepted products get 3 writes (no inci_reviewed_at); reviewed ones get 4.
+    const writes = [
+      ...group("p1", 3),
+      ...group("p2", 4),
+      ...group("p3", 3),
+      ...group("p4", 4),
+      ...group("p5", 3),
+      ...group("p6", 4),
+      ...group("p7", 3),
+      ...group("p8", 4),
+      ...group("p9", 3),
+    ];
+
+    const chunks = chunkMetafields(writes, 25);
+
+    expect(chunks.every((c) => c.length <= 25)).toBe(true);
+    expect(chunks.flat()).toHaveLength(writes.length);
+    for (const chunk of chunks) {
+      const owners = new Set(chunk.map((w) => w.ownerId));
+      for (const owner of owners) {
+        const inChunk = chunk.filter((w) => w.ownerId === owner).length;
+        const total = writes.filter((w) => w.ownerId === owner).length;
+        expect(inChunk).toBe(total);
+      }
+    }
+  });
+
+  test("packs near the boundary by real group size: 7 x 4-write products at maxPerCall 25 yields 24 then 4, not seven chunks", () => {
+    const writes = Array.from({ length: 7 }, (_, i) => group(`p${i}`, 4)).flat();
+
+    const chunks = chunkMetafields(writes, 25);
+
+    expect(chunks.map((c) => c.length)).toEqual([24, 4]);
+  });
+
+  test("throws when a single product's group is larger than maxPerCall rather than splitting it", () => {
+    const writes = group("p1", 5);
+    expect(() => chunkMetafields(writes, 4)).toThrow();
   });
 });
 

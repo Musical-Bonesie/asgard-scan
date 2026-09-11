@@ -3,7 +3,6 @@ import type { Classification, ExtractedIngredient } from "./types";
 export const METAFIELD_NAMESPACE = "asgard";
 /** metafieldsSet accepts at most 25 metafields per call. */
 export const MAX_METAFIELDS_PER_CALL = 25;
-const METAFIELDS_PER_PRODUCT = 4;
 
 /**
  * Shopify silently serves retired API versions using the oldest supported
@@ -32,7 +31,13 @@ export interface BuildParams {
   ingredients: ExtractedIngredient[];
   classification: Classification;
   confidence: number;
-  reviewedAt: string;
+  /**
+   * Null for an auto-accepted candidate that no human has reviewed yet. The
+   * spec defines inci_reviewed_at as null until a human approves it, and
+   * date_time metafields cannot be set to an empty value, so a null here
+   * means the write is omitted entirely rather than sent empty.
+   */
+  reviewedAt: string | null;
 }
 
 export function buildMetafieldWrites(
@@ -45,7 +50,7 @@ export function buildMetafieldWrites(
 
   const base = { ownerId: productGid, namespace: METAFIELD_NAMESPACE };
 
-  return [
+  const writes: MetafieldWrite[] = [
     {
       ...base,
       key: "inci_list",
@@ -65,13 +70,18 @@ export function buildMetafieldWrites(
       type: "number_decimal",
       value: String(params.confidence),
     },
-    {
+  ];
+
+  if (params.reviewedAt !== null) {
+    writes.push({
       ...base,
       key: "inci_reviewed_at",
       type: "date_time",
       value: params.reviewedAt,
-    },
-  ];
+    });
+  }
+
+  return writes;
 }
 
 /**
@@ -91,23 +101,22 @@ export function chunkMetafields(
     byOwner.set(write.ownerId, group);
   }
 
-  const productsPerCall = Math.max(
-    1,
-    Math.floor(maxPerCall / METAFIELDS_PER_PRODUCT),
-  );
-
   const chunks: MetafieldWrite[][] = [];
   let current: MetafieldWrite[] = [];
-  let productsInCurrent = 0;
 
   for (const group of byOwner.values()) {
-    if (productsInCurrent >= productsPerCall) {
+    if (group.length > maxPerCall) {
+      throw new Error(
+        `Product ${group[0].ownerId} has ${group.length} metafield writes, ` +
+          `which exceeds maxPerCall (${maxPerCall}). metafieldsSet is atomic ` +
+          `per call, so this group cannot be split without risking a partial write.`,
+      );
+    }
+    if (current.length + group.length > maxPerCall) {
       chunks.push(current);
       current = [];
-      productsInCurrent = 0;
     }
     current.push(...group);
-    productsInCurrent += 1;
   }
   if (current.length > 0) chunks.push(current);
 
